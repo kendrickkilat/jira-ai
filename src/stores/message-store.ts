@@ -11,6 +11,7 @@ export const useMessageStore = defineStore("message", () => {
 
   function addMessageList(sentBy: string, message: string) {
     switch (sentBy) {
+      case USER.ME_OPENAI:
       case USER.OPENAI: {
         openAILogs.value.push({
           sender: sentBy,
@@ -18,6 +19,7 @@ export const useMessageStore = defineStore("message", () => {
         });
         break;
       }
+      case USER.ME_GEMINI:
       case USER.GEMINI: {
         geminiAILogs.value.push({
           sender: sentBy,
