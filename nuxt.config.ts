@@ -2,26 +2,18 @@
 import type { NuxtConfig } from "nuxt/config";
 
 const runtimeConfig: NuxtConfig["runtimeConfig"] = {
-  OPENAI_API: {
-    key: process.env.OPENAI_API_KEY,
-    organization: process.env.OPENAI_ORG_KEY,
-  },
   GEMINI_API: {
     key: process.env.GEMINI_API,
+  },
+  public: {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
 };
 
 export default defineNuxtConfig({
   runtimeConfig,
+  srcDir: "./src",
   devtools: { enabled: true },
-  imports: {
-    dirs: ["./store/**", "./composables/**"],
-  },
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  },
-  modules: ["nuxt-primevue"],
+  css: ["~/assets/app-view-styles.css"],
+  modules: ["@pinia/nuxt"],
 });

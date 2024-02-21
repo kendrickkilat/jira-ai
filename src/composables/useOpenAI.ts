@@ -1,43 +1,42 @@
-import { ref } from "vue";
-import useChat from "./useChat";
-import { type MessageLog } from "@/types/MessageLog";
-import OpenAI from "openai";
+import { useMessageStore } from "~/store/message-store";
 
 export default function useOpenAI() {
-  const { messages, scrollRef, addMessageToList, retrieveHistory } = useChat();
-  const newMessage = ref("");
-  const messagesTemp: MessageLog[] = [];
-  const isTyping = ref(false);
-  const openai = new OpenAI({
-    organization: `${useRuntimeConfig().OPENAI_ORG_KEY}`,
-  });
+  const { messages, isTyping } = storeToRefs(useMessageStore());
+  const { updateTypingStatus, addMessageList } = useMessageStore();
 
-  async function submitOpenAI() {
-    if (newMessage.value == null || newMessage.value == "") {
-      addMessageToList("system", "invalid input");
+  async function submitOpenAI(newMessage: string) {
+    if (!newMessage) {
+      addMessageList("system", "invalid input");
       return;
     }
-    addMessageToList("me", newMessage.value);
-    isTyping.value = !isTyping.value;
+    addMessageList("me", newMessage);
+    updateTypingStatus(true);
 
-    const stream = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: newMessage.value }],
-      stream: true,
-    });
-
-    isTyping.value = !isTyping.value;
-
-    for await (const chunk of stream) {
-      addMessageToList("chatGPT", chunk.choices[0]?.delta?.content || "");
-    }
-
-    // Clear the message input field
-    newMessage.value = "";
+    useFetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `${useRuntimeConfig().public.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: newMessage }],
+      }),
+    })
+      .then((response) => response.data.value)
+      .then((data: any) => {
+        updateTypingStatus(false);
+        console.log(data.choices[0].message);
+        if (data.error != null) {
+          addMessageList("chatGPT", data.error.message);
+        } else {
+          const formattedResponse = data.choices[0].message.content;
+          addMessageList("chatGPT", formattedResponse);
+        }
+      });
   }
+
   return {
-    newMessage,
-    messagesTemp,
+    messages,
     isTyping,
     submitOpenAI,
   };
