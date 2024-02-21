@@ -1,16 +1,17 @@
-import { useMessageStore } from "~/store/message-store";
+import { USER } from "~/enums/AI";
+import { useMessageStore } from "~/stores/message-store";
 
 export default function useOpenAI() {
-  const { messages, isTyping } = storeToRefs(useMessageStore());
+  const { openAILogs, isOpenAITyping } = storeToRefs(useMessageStore());
   const { updateTypingStatus, addMessageList } = useMessageStore();
 
   async function submitOpenAI(newMessage: string) {
     if (!newMessage) {
-      addMessageList("system", "invalid input");
+      addMessageList(USER.SYSTEM, "invalid input");
       return;
     }
-    addMessageList("me", newMessage);
-    updateTypingStatus(true);
+    addMessageList(USER.ME_OPENAI, newMessage);
+    updateTypingStatus(USER.OPENAI, true);
 
     useFetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -19,25 +20,25 @@ export default function useOpenAI() {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: newMessage }],
+        messages: [{ role: USER.ME_OPENAI, content: newMessage }],
       }),
     })
       .then((response) => response.data.value)
       .then((data: any) => {
-        updateTypingStatus(false);
+        updateTypingStatus(USER.OPENAI, false);
         console.log(data.choices[0].message);
         if (data.error != null) {
-          addMessageList("chatGPT", data.error.message);
+          addMessageList(USER.OPENAI, data.error.message);
         } else {
           const formattedResponse = data.choices[0].message.content;
-          addMessageList("chatGPT", formattedResponse);
+          addMessageList(USER.OPENAI, formattedResponse);
         }
       });
   }
 
   return {
-    messages,
-    isTyping,
+    openAILogs,
+    isOpenAITyping,
     submitOpenAI,
   };
 }

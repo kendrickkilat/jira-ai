@@ -2,11 +2,9 @@
 import type { NuxtConfig } from "nuxt/config";
 
 const runtimeConfig: NuxtConfig["runtimeConfig"] = {
-  GEMINI_API: {
-    key: process.env.GEMINI_API,
-  },
   public: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
 };
 
@@ -16,4 +14,5 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ["~/assets/app-view-styles.css"],
   modules: ["@pinia/nuxt"],
+  vite: {},
 });
