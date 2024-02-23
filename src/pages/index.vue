@@ -1,34 +1,52 @@
 <template>
-  <div class="chat-container">
-    <div class="message-area">
-      <openai :messages="openAILogs" :isTyping="isOpenAITyping" />
-      <gemini :messages="geminiAILogs" :isTyping="isGeminiAITyping" />
+  <div
+    class="flex bg-gradient-to-b from-black via-sky-800 to-sky-300 flex-col align-bottom justify-end h-screen overflow-y-hidden"
+  >
+    <div class="overflow-y-auto">
+      <talk
+        :messages="AILogs"
+        class="flex flex-col-reverse w-full justify-stretch"
+      />
+      <TypingBubble :isTyping="isAITyping" class="justify-center" />
     </div>
 
-    <input
-      type="text"
-      onkeydown="if (event.keyCode === 13 && event.shiftKey) this.value += '\n';"
-      @keydown.enter="submit"
-      v-model="newMessage"
-      placeholder="Type your message..."
-    />
-    <button type="submit" @click="submit()" @keyup.enter="submit()">
-      Send
-    </button>
+    <InputGroup class="p-4">
+      <FloatLabel>
+        <InputText
+          class="pl-2 pr-2 rounded-s-md h-12"
+          v-model="newMessage"
+          @keydown.enter="submit"
+        />
+        <label class="text-gray-700">Start a topic...</label>
+      </FloatLabel>
+      <Button class="bg-green-400" icon="pi pi-send" @click="submit" />
+      <Button
+        :disabled="AILogs.length == 0"
+        class="bg-lime-400"
+        icon="pi pi-save"
+        @click="saveToLocalStorage"
+      />
+      <Button
+        class="bg-emerald-400"
+        icon="pi pi-download"
+        @click="loadFromLocalStorage"
+      />
+    </InputGroup>
   </div>
 </template>
 
 <script setup lang="ts">
-import useOpenAI from "../composables/useOpenAI";
-import useGeminiAI from "../composables/useGeminiAI";
-
-const { openAILogs, isOpenAITyping, submitOpenAI } = useOpenAI();
-const { geminiAILogs, isGeminiAITyping, submitGeminiAI } = useGeminiAI();
-const newMessage = ref("");
+const {
+  AILogs,
+  isAITyping,
+  startTalking,
+  saveToLocalStorage,
+  loadFromLocalStorage,
+} = useTalkAI();
+const newMessage = ref("how is your day?");
 
 function submit() {
-  submitOpenAI(newMessage.value);
-  submitGeminiAI(newMessage.value);
+  startTalking(newMessage.value);
   newMessage.value = "";
 }
 </script>

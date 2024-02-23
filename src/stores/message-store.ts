@@ -6,6 +6,8 @@ import { USER } from "~/enums/AI";
 export const useMessageStore = defineStore("message", () => {
   const openAILogs: Ref<MessageLog[]> = ref([]);
   const geminiAILogs: Ref<MessageLog[]> = ref([]);
+  const AILogs: Ref<MessageLog[]> = ref([]);
+  const isAITyping = ref(false);
   const isOpenAITyping = ref(false);
   const isGeminiAITyping = ref(false);
 
@@ -40,6 +42,17 @@ export const useMessageStore = defineStore("message", () => {
     }
   }
 
+  function addConversationLog(sentBy: string, message: string) {
+    AILogs.value.push({
+      sender: sentBy,
+      content: message,
+    });
+  }
+
+  function isTyping(status: boolean) {
+    isAITyping.value = status;
+  }
+
   function updateTypingStatus(system: string, status: boolean) {
     if (system === USER.OPENAI) {
       isOpenAITyping.value = status;
@@ -49,12 +62,28 @@ export const useMessageStore = defineStore("message", () => {
     }
   }
 
+  function saveToLocalStorage() {
+    localStorage.setItem("AILogs", JSON.stringify(AILogs.value));
+  }
+
+  function loadFromLocalStorage() {
+    const data = localStorage.getItem("AILogs");
+    const logs = data ? JSON.parse(data) : [];
+    AILogs.value = logs;
+  }
+
   return {
     openAILogs,
     geminiAILogs,
+    AILogs,
+    isAITyping,
     isOpenAITyping,
     isGeminiAITyping,
     addMessageList,
     updateTypingStatus,
+    addConversationLog,
+    isTyping,
+    saveToLocalStorage,
+    loadFromLocalStorage,
   };
 });

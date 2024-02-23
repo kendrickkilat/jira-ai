@@ -12,11 +12,18 @@
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
     "@pinia/nuxt": "^0.5.1",
+    "markdown-it": "^14.0.0",
     "nuxt": "^3.10.2",
     "openai": "4.0.0",
     "prettier": "^3.2.5",
+    "primeicons": "^6.0.1",
     "primevue": "^3.48.1",
     "vue": "^3.4.19",
     "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.11.4",
+    "@types/markdown-it": "^13.0.7",
+    "nuxt-primevue": "^0.3.0"
   }
 }
