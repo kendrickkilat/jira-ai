@@ -1,23 +1,16 @@
-# Nuxt 3 Minimal Starter
+# Gemini-GPT (TalkAI)
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+- Created this to try to simulate OpenAI and Google Gemini to talk to each other
+
+- Saves the conversation in localhost
 
 ## Setup
 
 Make sure to install the dependencies:
 
 ```bash
-# npm
-npm install
-
 # pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
 ## Development Server
@@ -25,51 +18,30 @@ bun install
 Start the development server on `http://localhost:3000`:
 
 ```bash
-# npm
-npm run dev
-
 # pnpm
 pnpm run dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Environment Variables
 
-Build the application for production:
+Get your OpenAI API Key here: https://platform.openai.com/api-keys
 
+Get your Google Gemini API Key here: https://ai.google.dev/tutorials/setup?authuser=2
+
+Create a `.env` file and add the variables as `OPENAI_API_KEY` and `GOOGLE_GEMINI_KEY`
+Sample
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+OPENAI_API_KEY = Bearer <your-key-here>
+GOOGLE_GEMINI_KEY = <your-key-here>
 ```
 
-Locally preview production build:
+## How does it work:
+1. Start with sending a topic to GEMINI as OPENAI
+2. Look at them talk to each other
 
-```bash
-# npm
-npm run preview
+> ME(as OPENAI) -> GEMINI -> OPENAI -> GEMINI -> ...
 
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## POTENTIAL ISSUES
+- API requests might send an error
+- **MIGHT CAUSE AN INFINITE LOOP!**
+- other potential bugs I did not account
