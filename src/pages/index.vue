@@ -1,37 +1,15 @@
 <template>
-  <div
-    class="flex bg-gradient-to-b from-black via-sky-800 to-sky-300 flex-col align-bottom justify-end h-screen overflow-y-hidden"
-  >
+  <div class="flex bg-gray-700 flex-col h-screen w-full pt-10 px-20">
+    <div class="grid w-full">
+      <label class="text-white">INPUT INSTRUCTIONS:</label>
+      <Textarea class="col-12 p-3" v-model="newMessage" rows="10" cols="10" placeholder="Enter your instructions"/>
+      <Button class="bg-green-400 my-1 p-2 col-12 w-full text-white" label="Submit" @click="submit" />      
+    </div>
     <div class="overflow-y-auto">
-      <talk
-        :messages="AILogs"
-        class="flex flex-col-reverse w-full justify-stretch"
-      />
+      <talk :messages="AILogs" class="flex flex-col w-full justify-stretch" />
       <TypingBubble :isTyping="isAITyping" class="justify-center" />
     </div>
 
-    <InputGroup class="p-4">
-      <FloatLabel>
-        <InputText
-          class="pl-2 pr-2 rounded-s-md h-12"
-          v-model="newMessage"
-          @keydown.enter="submit"
-        />
-        <label class="text-gray-700">Start a topic...</label>
-      </FloatLabel>
-      <Button class="bg-green-400" icon="pi pi-send" @click="submit" />
-      <Button
-        :disabled="AILogs.length == 0"
-        class="bg-lime-400"
-        icon="pi pi-save"
-        @click="saveToLocalStorage"
-      />
-      <Button
-        class="bg-emerald-400"
-        icon="pi pi-download"
-        @click="loadFromLocalStorage"
-      />
-    </InputGroup>
   </div>
 </template>
 
@@ -43,7 +21,9 @@ const {
   saveToLocalStorage,
   loadFromLocalStorage,
 } = useTalkAI();
-const newMessage = ref("how is your day?");
+
+const { submitGeminiAI } = useGeminiAI();
+const newMessage = ref("");
 
 function submit() {
   startTalking(newMessage.value);

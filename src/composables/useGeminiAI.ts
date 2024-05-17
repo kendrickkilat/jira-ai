@@ -13,6 +13,7 @@ export default function useGeminiAI() {
   );
 
   async function submitGeminiAI(newMessage: string) {
+    console.log('submitGeminiAI', newMessage);
     if (!newMessage) {
       addMessageList(USER.SYSTEM, "invalid input");
       return;
@@ -20,15 +21,32 @@ export default function useGeminiAI() {
     addMessageList(USER.ME_GEMINI, newMessage);
     updateTypingStatus(USER.GEMINI, true);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const chat = model.startChat();
-    const prompt = newMessage;
-    const result = await chat.sendMessage(prompt);
-    const response = await result.response;
-    const text = response.text();
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const chat = model.startChat();
+      const prompt = newMessage;
+      const result = await chat.sendMessage(prompt);
+      const response = await result.response;
+      const text = response.candidates ? response.candidates[0].content.parts[0].text : ''
 
-    updateTypingStatus(USER.GEMINI, false);
-    addMessageList(USER.GEMINI, text);
+      if(text) {
+      let data;
+      try {
+        data = JSON.parse(text);
+        console.log('parsed json', data);
+      } catch (e) {
+        data = [];
+      }
+      }
+
+      console.log('gemini:', response)
+      addConversationLog(USER.GEMINI, text ?? 'Cant Generate the Message');
+      isTyping(false);
+    } catch(e) {
+      console.error(e);
+      isTyping(false)
+    }
+
   }
 
   async function talkToGemini(message: string): Promise<string> {

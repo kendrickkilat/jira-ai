@@ -2,7 +2,7 @@ import { USER } from "~/enums/AI";
 
 export default function useTalkAI() {
   const { talkToOpenAI } = useOpenAI();
-  const { talkToGemini } = useGeminiAI();
+  const { talkToGemini, submitGeminiAI } = useGeminiAI();
   const { AILogs, isAITyping } = storeToRefs(useMessageStore());
   const {
     isTyping,
@@ -13,14 +13,39 @@ export default function useTalkAI() {
 
   let iteration = 0;
 
+  function modifyMessage(message: string) {
+    return `
+      Before you reply, Your output should remove the markdown and language name.
+
+      Create an array of objects with this format:
+      {
+        fields: {
+          project: {
+            id: number;
+          },
+          summary: string,
+          description:string,
+          issuetype: {
+            id: number
+          }
+        }
+      }
+      
+      based from this list mentioned below: ${message} 
+    `
+  }
+
   function startTalking(message: string) {
     if (!message) {
       addConversationLog(USER.SYSTEM, "invalid input");
       return;
     }
+
+    const modifiedMessage = modifyMessage(message);
+    
     addConversationLog(USER.OPENAI, message);
     isTyping(true);
-    talk(USER.OPENAI, message);
+    submitGeminiAI(modifiedMessage);
   }
 
   //initiate convo -> openai -> gemini -> openai -> ...
@@ -32,12 +57,12 @@ export default function useTalkAI() {
     // }
     if (ai === USER.OPENAI) {
       isTyping(true);
-      //call gemini
-      talk(USER.GEMINI, await talkToGemini(message));
+      // call gemini
+      talk(USER.OPENAI, await talkToGemini(message));
     }
     if (ai === USER.GEMINI) {
       isTyping(true);
-      //call openai
+    //   //call openai
       talk(USER.OPENAI, await talkToOpenAI(message));
     }
     isTyping(false);
