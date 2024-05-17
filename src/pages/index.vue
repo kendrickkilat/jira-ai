@@ -18,11 +18,8 @@ const {
   AILogs,
   isAITyping,
   startTalking,
-  saveToLocalStorage,
-  loadFromLocalStorage,
 } = useTalkAI();
 
-const { submitGeminiAI } = useGeminiAI();
 const newMessage = ref("");
 
 function submit() {
