@@ -11,41 +11,15 @@ export default function useTalkAI() {
     loadFromLocalStorage,
   } = useMessageStore();
 
-  let iteration = 0;
-
-  function modifyMessage(message: string) {
-    return `
-      Before you reply, Your output should remove the markdown and language name.
-
-      Create an array of objects with this format:
-      {
-        fields: {
-          project: {
-            id: number;
-          },
-          summary: string,
-          description:string,
-          issuetype: {
-            id: number
-          }
-        }
-      }
-      
-      based from this list mentioned below: ${message} 
-    `
-  }
-
   function startTalking(message: string) {
     if (!message) {
       addConversationLog(USER.SYSTEM, "invalid input");
       return;
     }
 
-    const modifiedMessage = modifyMessage(message);
-    
     addConversationLog(USER.OPENAI, message);
     isTyping(true);
-    submitGeminiAI(modifiedMessage);
+    submitGeminiAI(message);
   }
 
   //initiate convo -> openai -> gemini -> openai -> ...
