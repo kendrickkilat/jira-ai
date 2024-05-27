@@ -8,8 +8,8 @@ declare module "#app" {
 
 export default defineNuxtPlugin(() => {
   const renderer = md({
-    html: true,
-    xhtmlOut: true,
+    html: false,
+    xhtmlOut: false,
     breaks: true,
   });
   return {

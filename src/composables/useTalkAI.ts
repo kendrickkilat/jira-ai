@@ -2,7 +2,6 @@ import { USER } from "~/enums/AI";
 
 export default function useTalkAI() {
   // const { talkToOpenAI } = useOpenAI();
-  const { submitGeminiAI } = useGeminiAI();
   const { AILogs, isAITyping } = storeToRefs(useMessageStore());
   const {
     isTyping,
@@ -19,7 +18,6 @@ export default function useTalkAI() {
 
     addConversationLog(USER.OPENAI, message);
     isTyping(true);
-    submitGeminiAI(message);
   }
 
   //initiate convo -> openai -> gemini -> openai -> ...
