@@ -19,6 +19,8 @@ export default function useGeminiAI() {
     const prompt = message;
     const result = await chat.sendMessage(prompt);
     const response = await result.response;
+
+    console.log('gemini response: ',  response);
     const text = response.candidates ? response.candidates[0].content.parts[0].text : ''
 
     return text;

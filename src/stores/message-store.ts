@@ -2,11 +2,13 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import type { MessageLog } from "~/types/MessageLog";
 import { USER } from "~/enums/AI";
+import type { Process } from "~/types/Process";
 
 export const useMessageStore = defineStore("message", () => {
   const openAILogs: Ref<MessageLog[]> = ref([]);
   const geminiAILogs: Ref<MessageLog[]> = ref([]);
   const AILogs: Ref<MessageLog[]> = ref([]);
+  const ProcessLogs: Ref<Process[]> = ref([]);
   const isAITyping = ref(false);
   const isOpenAITyping = ref(false);
   const isGeminiAITyping = ref(false);
@@ -49,6 +51,32 @@ export const useMessageStore = defineStore("message", () => {
     });
   }
 
+  function removeProcess(type: string) {
+    const itemIndex = ProcessLogs.value.findIndex(item => item.type === type);
+    if (itemIndex !== -1) {
+      ProcessLogs.value.splice(itemIndex, 1);
+    }
+  }
+
+  function updateProcess(type: string, message: string, status:string) {
+    const itemIndex = ProcessLogs.value.findIndex(item => item.type === type);
+    if (itemIndex !== -1) {
+      ProcessLogs.value[itemIndex] = {
+        type: type,
+        content: message,
+        status: status,
+      };
+    }
+  }
+
+  function addToProcessList(type: string, message: string, status:string) {
+    ProcessLogs.value.push({
+      type: type,
+      content: message,
+      status: status,
+    });
+  }
+
   function isTyping(status: boolean) {
     isAITyping.value = status;
   }
@@ -79,9 +107,13 @@ export const useMessageStore = defineStore("message", () => {
     isAITyping,
     isOpenAITyping,
     isGeminiAITyping,
+    ProcessLogs,
     addMessageList,
     updateTypingStatus,
     addConversationLog,
+    updateProcess,
+    removeProcess,
+    addToProcessList,
     isTyping,
     saveToLocalStorage,
     loadFromLocalStorage,

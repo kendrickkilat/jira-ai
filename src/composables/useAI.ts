@@ -1,4 +1,4 @@
-import { USER } from "~/enums/AI";
+import { PROCESS, PROCESS_STATUS, USER } from "~/enums/AI";
 
 export default function useAI() {
     // determine the AI being used
@@ -6,7 +6,7 @@ export default function useAI() {
     const AIModel = ref('');
 
     const { callGemini } = useGeminiAI();
-    const { AILogs, isAITyping } = storeToRefs(useMessageStore());
+    const { AILogs, isAITyping, ProcessLogs } = storeToRefs(useMessageStore());
 
     const { $mdRenderer: mdRenderer } = useNuxtApp();
     const generatedData = ref([]);
@@ -14,10 +14,13 @@ export default function useAI() {
     const {
         isTyping,
         addConversationLog,
+        updateProcess,
+        addToProcessList,
         updateTypingStatus,
+        removeProcess,
     } = useMessageStore();
 
-
+    // TODO: ADD AN ERROR IF THE API WONT RESPOND WITH ERROR CODE
     async function callAI(message:string): Promise<string | undefined> {
         switch(AIModel.value) {
             // case 'OPENAI': return await callOpenAI(message);
@@ -29,20 +32,48 @@ export default function useAI() {
     // validate the message if its valid instruction or not
     async function validateMessage(message: string) {
         console.log('validating: ', message)
-        const instruction = `Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
+        const instruction = `Answer in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
         const res = await callAI(instruction);
     
         if(!res) {
           return false;
         }
 
-        const isValidated = res.includes('Yes');
+        const isValidated = res.toLocaleLowerCase().includes('yes');
         
         if(!isValidated) {
-            addConversationLog(USER.GEMINI, res);
+            addToProcessList(PROCESS.ELABORATING, res, PROCESS_STATUS.FAILED);
         }
     
-        return res.includes('Yes');
+        return res.toLocaleLowerCase().includes('yes');;
+    }
+
+    async function validateJSON(instructions: string, json: string) {
+      console.log('validating json');
+
+      const instruction = `Answer in yes or no, Is this instruction "${instructions}" satisfy this JSON/javascript object: ${json}`;
+
+      const res = await callAI(instruction);
+      console.log('response: ', res);
+
+      if(!res) {
+        return false;
+      }
+
+      const isValidated = res.toLocaleLowerCase().includes('yes');
+      
+      if(!isValidated) {
+          removeProcess(PROCESS.GENERATE_OBJECT);
+          addToProcessList(PROCESS.GENERATE_OBJECT, 'Attempting to Regenerate the Message', PROCESS_STATUS.IN_PROGRESS);
+          const res = await callAI(instructions);
+
+          if(res){
+            const newJSON = removeCodeBlock(res);
+            return await validateJSON(instructions, newJSON);
+          }
+      }
+
+      return isValidated;
     }
 
     
@@ -51,11 +82,11 @@ export default function useAI() {
     function modifyMessage(message:string) {
         return `
           Before you reply, I want you to remove the markdown symbols and the programming language name being used on your response.
-          Then I want you to create an array of json objects like this one where the each item of that list is a step of an instruction: 
+          Then I want you to create an array of valid json objects like this one where each item of that list is a step of an instruction that will be passed to the JIRA API: 
           {[
             "fields": {
               "project": {
-                "key": string;
+                "key": "AI";
               },
               "summary": string,
               "description":string,
@@ -88,10 +119,11 @@ export default function useAI() {
     async function submitToAI(message:string) {
         if (!message) {
             addConversationLog(USER.SYSTEM, "invalid input");
+            addToProcessList(PROCESS.ERROR, "Invalid Input", PROCESS_STATUS.FAILED);
             return;
         }
 
-        addConversationLog(USER.OPENAI, message);
+        addToProcessList(PROCESS.ELABORATING, message, PROCESS_STATUS.IN_PROGRESS);
         isTyping(true);
 
         const isMessageAnInstruction = await validateMessage(message);
@@ -105,36 +137,37 @@ export default function useAI() {
 
          if(!elaboratedMessage){
             isTyping(false);
-            addConversationLog(USER.GEMINI, 'Cant Generate the Message');
+            addToProcessList(PROCESS.ERROR, 'Cant Generate the Message', PROCESS_STATUS.FAILED);
             return
          }
-         addConversationLog(USER.GEMINI, mdRenderer.render(elaboratedMessage));
+
+
+         updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
+         addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
 
          const modifiedMessage = modifyMessage(elaboratedMessage);
          updateTypingStatus(USER.GEMINI, true);
 
+         addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
          try {
              const generatedObjString = await callAI(modifiedMessage)
              const data = removeCodeBlock(generatedObjString ?? '');
-    
-             addConversationLog(USER.GEMINI,`Object Generated: ${data}` ?? 'Cant Generate the Message');
-             isTyping(false)
-    
-             if(data) {
+             console.log('filteredData: ', data);
+
+             if(await validateJSON(elaboratedMessage, data)) {
                 const generatedObj = JSON.parse(data);
 
                 console.log('generatedObj: ', generatedObj);
 
                 generatedData.value = generatedObj.map((obj: { fields: any; }) => obj.fields);
-    
-                // for(let i=0; i<generatedObj.length; i++) {
-                //     const data = generatedObj[i].fields;
-
-                //     addConversationLog(USER.GEMINI, `Task Summary: ${data.summary}`);
-                // }
+                
+                removeProcess(PROCESS.GENERATE_OBJECT)
+                addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);
              }
+
          } catch (err) {
             isTyping(false);
+            addToProcessList(PROCESS.ERROR, `Cant Generate the Message: ${err}`, PROCESS_STATUS.FAILED);
             console.error(err);
          }
     }
@@ -144,6 +177,7 @@ export default function useAI() {
         isAITyping,
         AIModel,
         submitToAI,
-        generatedData
+        generatedData,
+        ProcessLogs,
     }
 }
