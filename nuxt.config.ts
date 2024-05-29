@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   srcDir: "./src",
   devtools: { enabled: true },
   css: [
-    "primevue/resources/themes/lara-light-green/theme.css",
+    "primevue/resources/themes/lara-dark-green/theme.css",
     "primeicons/primeicons.css",
   ],
   imports: {
