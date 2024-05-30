@@ -21,7 +21,27 @@ export default function useGeminiAI() {
     const response = await result.response;
 
     console.log('gemini response: ',  response);
-    const text = response.candidates ? response.candidates[0].content.parts[0].text : ''
+    if(!response.candidates) {
+      return '';
+    }
+
+    if(!response.candidates[0].content && response.candidates[0].safetyRatings) {
+      console.log('invalid input: ', response);
+
+      let reason;
+      const safetyRatings = response.candidates[0].safetyRatings;
+      
+      for(let i = 0; i <= safetyRatings?.length; i++) {
+        if(safetyRatings[i].probability === "HIGH") {
+          reason = safetyRatings[i].category;
+          break;
+        }
+      }
+      
+      return `Invalid Input. Reason: ${reason}`;
+    }
+    
+    const text = response.candidates[0].content.parts[0].text;
 
     return text;
   }

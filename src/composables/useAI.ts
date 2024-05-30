@@ -40,9 +40,12 @@ export default function useAI() {
         }
 
         const isValidated = res.toLocaleLowerCase().includes('yes');
+
+        console.log('is validated: ', res)
         
         if(!isValidated) {
-            addToProcessList(PROCESS.ELABORATING, res, PROCESS_STATUS.FAILED);
+            console.error(res);
+            updateProcess(PROCESS.ELABORATING, res, PROCESS_STATUS.FAILED);
         }
     
         return res.toLocaleLowerCase().includes('yes');;
@@ -129,6 +132,7 @@ export default function useAI() {
         const isMessageAnInstruction = await validateMessage(message);
 
          if(!isMessageAnInstruction) {
+            updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.FAILED);
             isTyping(false);
             return
          }

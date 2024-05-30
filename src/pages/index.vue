@@ -10,8 +10,8 @@
         <Button icon="pi pi-eye-slash" class="text-h5 p-3 text-white" @click="toggleInput"></Button>
       </span>
       <Textarea class="col-12 p-3" v-model="newMessage" rows="10" cols="10" placeholder="Enter your instructions"/>
-      <div class="flex flex-row gap-1">
-        <Button class="bg-pink-600 my-2 p-2 col-12 w-full text-h5 text-white" label="SUBMIT" @click="submitGemini" />
+      <div class="flex flex-row gap-1 justify-center">
+        <Button icon="pi pi-cog" class="bg-pink-600 my-2 p-2 w-40 text-h5 text-white" label="GENERATE" @click="submitGemini" />
       </div>
     </div>
     <div class="overflow-y-auto py-5 px-10 my-3 rounded-xl bg-opacity-55">
@@ -19,15 +19,6 @@
       <TypingBubble :isTyping="isAITyping" class="justify-center" /> -->
       <GenerateObjectProcess :processes="ProcessLogs" @toggleModal="toggleModal" />
     </div>
-    <!-- <Dialog v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem' }">
-        <DataTable :value="generatedData" tableStyle="min-width: 50rem">
-            <Column field="summary" header="Summary"/>
-            <Column field="description" header="Description"/>
-        </DataTable>
-        <template #footer>
-          <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA"></Button>
-        </template>
-    </Dialog> -->
     <Dialog class="bg-gray-800 dark" v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem' }">
         <DataTable :value="generatedData" class="" tableStyle="min-width: 50rem">
           <Column field="project" header="Project Key">

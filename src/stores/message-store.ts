@@ -67,6 +67,8 @@ export const useMessageStore = defineStore("message", () => {
         status: status,
       };
     }
+
+    console.log(ProcessLogs.value , message)
   }
 
   function addToProcessList(type: string, message: string, status:string) {
