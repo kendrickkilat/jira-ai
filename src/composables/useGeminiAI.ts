@@ -39,6 +39,8 @@ export default function useGeminiAI() {
       }
       
       return `Invalid Input. Reason: ${reason}`;
+    } else if(!response.candidates[0].content) {
+      return `API Error: ${response.candidates[0].finishReason}`;
     }
     
     const text = response.candidates[0].content.parts[0].text;

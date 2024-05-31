@@ -10,6 +10,7 @@ export default function useAI() {
 
     const { $mdRenderer: mdRenderer } = useNuxtApp();
     const generatedData = ref([]);
+    const generatedJSON = ref("");
 
     const {
         isTyping,
@@ -50,6 +51,23 @@ export default function useAI() {
     
         return res.toLocaleLowerCase().includes('yes');;
     }
+    function nonAIValidator(json:string) {
+      try {
+        const data = JSON.parse(json);
+        console.log('data: ', data);
+
+        data.forEach((e:any) => {
+          if(e.fields.project.key != "AI" || e.fields.issuetype != 10001) {
+            return false;
+          }
+        });
+
+        return true;
+      } catch(err) {
+        console.log('nonAIValidation Error: ', err);
+        return false;
+      }
+    }
 
     async function validateJSON(instructions: string, json: string) {
       console.log('validating json');
@@ -64,6 +82,10 @@ export default function useAI() {
       }
 
       const isValidated = res.toLocaleLowerCase().includes('yes');
+      const nonAIValidated = nonAIValidator(generatedJSON.value);
+      if(!nonAIValidated) {
+        updateProcess(PROCESS.GENERATE_OBJECT, 'Cant Generate the Message: INVALID OBJECT', PROCESS_STATUS.FAILED);
+      }
       
       if(!isValidated) {
           removeProcess(PROCESS.GENERATE_OBJECT);
@@ -76,6 +98,7 @@ export default function useAI() {
           }
       }
 
+      generatedJSON.value = json;
       return isValidated;
     }
 
@@ -94,7 +117,7 @@ export default function useAI() {
               "summary": string,
               "description":string,
               "issuetype": {
-                "id": number
+                "id": 10001
               }
             }
           ]}
@@ -159,7 +182,8 @@ export default function useAI() {
              console.log('filteredData: ', data);
 
              if(await validateJSON(elaboratedMessage, data)) {
-                const generatedObj = JSON.parse(data);
+                
+                const generatedObj = JSON.parse(generatedJSON.value !== '' ? generatedJSON.value : data);
 
                 console.log('generatedObj: ', generatedObj);
 
@@ -170,7 +194,6 @@ export default function useAI() {
              }
 
          } catch (err) {
-            isTyping(false);
             addToProcessList(PROCESS.ERROR, `Cant Generate the Message: ${err}`, PROCESS_STATUS.FAILED);
             console.error(err);
          }

@@ -12,6 +12,8 @@
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
     "@pinia/nuxt": "^0.5.1",
+    "@types/jira-client": "^7.1.9",
+    "jira-client": "^8.2.2",
     "markdown-it": "^14.0.0",
     "nuxt": "^3.10.2",
     "openai": "4.0.0",

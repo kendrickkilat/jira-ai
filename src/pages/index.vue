@@ -1,6 +1,6 @@
 <template>
   <div class="flex bg-gray-700 flex-col h-screen w-full pt-3 px-3">
-    <!-- <Button class="bg-green-600 text-h5 mb-5 p-1 col-12 w-64 text-center text-white" label="Show List of Generated Tasks/Issues" @click="toggleModal"></Button> -->
+    <Button class="bg-green-600 text-h5 mb-5 p-1 col-12 w-64 text-center text-white" label="Show List of Generated Tasks/Issues" @click="submitToJIRA"></Button>
     <div v-if="!showInput" class="flex gap-3 justify-center">
       <Button icon="pi pi-eye" class="bg-green-600 text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
     </div>
@@ -84,9 +84,17 @@ function submitOpenAI() {
   toggleInput();
 }
 
-function submitToJIRA() {
-  toggleModal()
-  console.log("SENDING THIS OBJECT:", generatedData)
+async function submitToJIRA() {
+  // toggleModal()
+  console.log("SENDING THIS OBJECT:", generatedData);
+
+  const { data }  = await useFetch('/api/jira', {
+    method: 'post',
+    body: generatedData
+  });
+
+  const hello = data.value as { data: string, status:string};
+  console.log('api: ', hello.data);
 }
 
 const test = [
