@@ -1,8 +1,8 @@
 <template>
   <div class="flex bg-gray-700 flex-col h-screen w-full pt-3 px-3">
-    <Button class="bg-green-600 text-h5 mb-5 p-1 col-12 w-64 text-center text-white" label="Show List of Generated Tasks/Issues" @click="submitToJIRA"></Button>
+    <Button class="py-3 text-white" icon="pi pi-wrench" @click="submitToJIRA"></Button>
     <div v-if="!showInput" class="flex gap-3 justify-center">
-      <Button icon="pi pi-eye" class="bg-green-600 text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
+      <Button icon="pi pi-eye" class=" text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
     </div>
     <div v-else="showInput" class="flex flex-col ">
       <span class="flex justify-between items-end">
@@ -20,7 +20,7 @@
       <GenerateObjectProcess :processes="ProcessLogs" @toggleModal="toggleModal" />
     </div>
     <Dialog class="bg-gray-800 dark" v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem' }">
-        <DataTable :value="generatedData" class="" tableStyle="min-width: 50rem">
+        <DataTable :value="tableData" class="" tableStyle="min-width: 50rem">
           <Column field="project" header="Project Key">
             <template #body="slotProps">
               {{ slotProps.data.project.key }}
@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 
-const { submitToAI, AIModel, generatedData, ProcessLogs } = useAI();
+const { submitToAI, AIModel, generatedData, ProcessLogs, tableData } = useAI();
 
 const visible = ref(false);
 

@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default function useGeminiAI() {
   const { geminiAILogs, isGeminiAITyping } = storeToRefs(useMessageStore());
-  const { updateTypingStatus, addMessageList, addConversationLog, isTyping } =
+  const {  addConversationLog, isTyping } =
     useMessageStore();
 
   // Access your API key as an environment variable (see "Set up your API key" above)

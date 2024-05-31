@@ -10,7 +10,7 @@ export default function useAI() {
 
     const { $mdRenderer: mdRenderer } = useNuxtApp();
     const generatedData = ref([]);
-    const generatedJSON = ref("");
+    const tableData = ref([]);
 
     const {
         isTyping,
@@ -57,7 +57,7 @@ export default function useAI() {
         console.log('data: ', data);
 
         data.forEach((e:any) => {
-          if(e.fields.project.key != "AI" || e.fields.issuetype != 10001) {
+          if(e.fields.project.key != "AI" || e.fields.issuetype != 10001) { // for issue type might add a switch case where the default returns false maybe?
             return false;
           }
         });
@@ -69,37 +69,54 @@ export default function useAI() {
       }
     }
 
+    async function generateObject(instructions:string) {
+      removeProcess(PROCESS.GENERATE_OBJECT);
+      addToProcessList(PROCESS.GENERATE_OBJECT, 'Attempting to Regenerate the Message', PROCESS_STATUS.IN_PROGRESS);
+
+      const modifiedInstructions = modifyMessage(instructions);
+      const res = await callAI(modifiedInstructions);
+
+      return res;
+    }
+
     async function validateJSON(instructions: string, json: string) {
       console.log('validating json');
+      
+      // first check if json is valid
+      const nonAIValidated = nonAIValidator(json);
+      if(!nonAIValidated) {
+        updateProcess(PROCESS.GENERATE_OBJECT, 'Regenerating Object...', PROCESS_STATUS.IN_PROGRESS);
+        const res = await generateObject(instructions);
+    
+        if(res) {
+          const newJSON = removeCodeBlock(res);
+          return await validateJSON(instructions, newJSON);
+        }
+      }
 
-      const instruction = `Answer in yes or no, Is this instruction "${instructions}" satisfy this JSON/javascript object: ${json}`;
+
+      //second check if json is valid
+
+      const instruction = `Answer only in yes or no, Is this JSON/Javascript Object: ${json} satisfy this instruction? "${instructions}"`;
 
       const res = await callAI(instruction);
-      console.log('response: ', res);
 
       if(!res) {
+        updateProcess(PROCESS.GENERATE_OBJECT, 'Cant Generate the Message', PROCESS_STATUS.FAILED);
         return false;
       }
 
       const isValidated = res.toLocaleLowerCase().includes('yes');
-      const nonAIValidated = nonAIValidator(generatedJSON.value);
-      if(!nonAIValidated) {
-        updateProcess(PROCESS.GENERATE_OBJECT, 'Cant Generate the Message: INVALID OBJECT', PROCESS_STATUS.FAILED);
-      }
       
       if(!isValidated) {
-          removeProcess(PROCESS.GENERATE_OBJECT);
-          addToProcessList(PROCESS.GENERATE_OBJECT, 'Attempting to Regenerate the Message', PROCESS_STATUS.IN_PROGRESS);
-          const res = await callAI(instructions);
-
+          const res = await generateObject(instructions);
           if(res){
             const newJSON = removeCodeBlock(res);
             return await validateJSON(instructions, newJSON);
           }
       }
 
-      generatedJSON.value = json;
-      return isValidated;
+      return json;
     }
 
     
@@ -144,19 +161,16 @@ export default function useAI() {
 
     async function submitToAI(message:string) {
         if (!message) {
-            addConversationLog(USER.SYSTEM, "invalid input");
             addToProcessList(PROCESS.ERROR, "Invalid Input", PROCESS_STATUS.FAILED);
             return;
         }
 
         addToProcessList(PROCESS.ELABORATING, message, PROCESS_STATUS.IN_PROGRESS);
-        isTyping(true);
 
         const isMessageAnInstruction = await validateMessage(message);
 
          if(!isMessageAnInstruction) {
-            updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.FAILED);
-            isTyping(false);
+            updateProcess(PROCESS.ELABORATING, "Can't elaborate since it's not a valid instruction.", PROCESS_STATUS.FAILED);
             return
          }
 
@@ -164,7 +178,7 @@ export default function useAI() {
 
          if(!elaboratedMessage){
             isTyping(false);
-            addToProcessList(PROCESS.ERROR, 'Cant Generate the Message', PROCESS_STATUS.FAILED);
+            addToProcessList(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
             return
          }
 
@@ -173,7 +187,6 @@ export default function useAI() {
          addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
 
          const modifiedMessage = modifyMessage(elaboratedMessage);
-         updateTypingStatus(USER.GEMINI, true);
 
          addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
          try {
@@ -181,13 +194,16 @@ export default function useAI() {
              const data = removeCodeBlock(generatedObjString ?? '');
              console.log('filteredData: ', data);
 
-             if(await validateJSON(elaboratedMessage, data)) {
+             const validatedJSON = await validateJSON(elaboratedMessage, data);
+
+             if(validatedJSON) {
                 
-                const generatedObj = JSON.parse(generatedJSON.value !== '' ? generatedJSON.value : data);
+                const generatedObj = JSON.parse(validatedJSON);
 
                 console.log('generatedObj: ', generatedObj);
 
-                generatedData.value = generatedObj.map((obj: { fields: any; }) => obj.fields);
+                generatedData.value = generatedObj;
+                tableData.value = generatedObj.map((obj: { fields: any; }) => obj.fields);
                 
                 removeProcess(PROCESS.GENERATE_OBJECT)
                 addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);
@@ -206,5 +222,6 @@ export default function useAI() {
         submitToAI,
         generatedData,
         ProcessLogs,
+        tableData,
     }
 }
