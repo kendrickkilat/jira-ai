@@ -179,31 +179,31 @@ export default function useAI() {
             return;
         }
 
-        addToProcessList(PROCESS.ELABORATING, message, PROCESS_STATUS.IN_PROGRESS);
-
-        const isMessageAnInstruction = await validateMessage(message);
-
-         if(!isMessageAnInstruction) {
-            updateProcess(PROCESS.ELABORATING, "Can't elaborate since it's not a valid instruction.", PROCESS_STATUS.FAILED);
-            return
-         }
-
-         const elaboratedMessage = await elaborateMessage(message);
-
-         if(!elaboratedMessage){
-            isTyping(false);
-            addToProcessList(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
-            return
-         }
-
-
-         updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
-         addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
-
-         const modifiedMessage = modifyMessage(elaboratedMessage);
-
-         addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
-         try {
+        try {
+           addToProcessList(PROCESS.ELABORATING, message, PROCESS_STATUS.IN_PROGRESS);
+   
+           const isMessageAnInstruction = await validateMessage(message);
+   
+            if(!isMessageAnInstruction) {
+               updateProcess(PROCESS.ELABORATING, "Can't elaborate since it's not a valid instruction.", PROCESS_STATUS.FAILED);
+               return
+            }
+   
+            const elaboratedMessage = await elaborateMessage(message);
+   
+            if(!elaboratedMessage){
+               isTyping(false);
+               addToProcessList(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
+               return
+            }
+   
+   
+            updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
+            addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
+   
+            const modifiedMessage = modifyMessage(elaboratedMessage);
+   
+            addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
              const generatedObjString = await callAI(modifiedMessage)
              const data = removeCodeBlock(generatedObjString ?? '');
              console.log('filteredData: ', data);
