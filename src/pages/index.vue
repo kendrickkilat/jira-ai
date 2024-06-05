@@ -53,7 +53,7 @@
                 </div>
               </template>
               <template #editor="{editorCancelCallback, editorSaveCallback, index}">
-                <div class="grid gap-1">
+                <div class="grid md:grid-flow-col grid-flow-row gap-1">
                   <Button icon="pi pi-check" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorSaveCallback"></Button>
                   <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"@click="editorCancelCallback"></Button>
                   <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
