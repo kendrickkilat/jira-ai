@@ -1,5 +1,12 @@
 import { PROCESS, PROCESS_STATUS, USER } from "~/enums/AI";
 
+export type TableData = {
+  description: string;
+  issuetype: {id: number};
+  project: {key: string};
+  summary: string;
+}
+
 export default function useAI() {
     // determine the AI being used
 
@@ -10,7 +17,14 @@ export default function useAI() {
 
     const { $mdRenderer: mdRenderer } = useNuxtApp();
     const generatedData = ref([]);
-    const tableData = ref([]);
+    const tableData = ref<TableData[]>([]);
+
+    const columns = ref([
+      {field: 'project', header: 'Project Key'},
+      {field: 'summary', header: 'Summary'},
+      {field: 'description', header: 'Description'},
+      {field: 'issuetype', header: 'Issue Type'},
+    ]);
 
     const {
         isTyping,
@@ -223,5 +237,6 @@ export default function useAI() {
         generatedData,
         ProcessLogs,
         tableData,
+        columns,
     }
 }

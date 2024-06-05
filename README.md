@@ -34,14 +34,3 @@ Sample
 OPENAI_API_KEY = Bearer <your-key-here>
 GOOGLE_GEMINI_KEY = <your-key-here>
 ```
-
-## How does it work:
-1. Start with sending a topic to GEMINI as OPENAI
-2. Look at them talk to each other
-
-> ME(as OPENAI) -> GEMINI -> OPENAI -> GEMINI -> ...
-
-## POTENTIAL ISSUES
-- API requests might send an error
-- **MIGHT CAUSE AN INFINITE LOOP!**
-- other potential bugs I did not account

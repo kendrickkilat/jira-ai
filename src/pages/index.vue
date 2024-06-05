@@ -1,6 +1,6 @@
 <template>
   <div class="flex bg-gray-700 flex-col h-screen w-full pt-3 px-3">
-    <Button class="py-3 text-white" icon="pi pi-wrench" @click="submitToJIRA"></Button>
+    <Button class="py-3 text-white" icon="pi pi-wrench" @click="toggleDebug"></Button>
     <div v-if="!showInput" class="flex gap-3 justify-center">
       <Button icon="pi pi-eye" class=" text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
     </div>
@@ -15,36 +15,55 @@
       </div>
     </div>
     <div class="overflow-y-auto py-5 px-10 my-3 rounded-xl bg-opacity-55">
-      <!-- <Talk :messages="AILogs" class="flex flex-col w-full justify-stretch" />
-      <TypingBubble :isTyping="isAITyping" class="justify-center" /> -->
       <GenerateObjectProcess :processes="ProcessLogs" @toggleModal="toggleModal" />
     </div>
-    <Dialog class="bg-gray-800 dark" v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem' }">
-        <DataTable :value="tableData" class="" tableStyle="min-width: 50rem">
-          <Column field="project" header="Project Key">
-            <template #body="slotProps">
-              {{ slotProps.data.project.key }}
+    <Dialog class="bg-gray-800 dark" v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem'  }">
+        <DataTable v-model:editingRows="editingRows" :value="tableData" editMode="row" v-on:row-edit-save="onRowEditSave" :pt="{
+                column: {
+                    bodycell: ({ state }: IBodyCellData) => ({
+                        style:  state['d_editing']&&'padding-top: 0.6rem; padding-bottom: 0.6rem'
+                    })
+                }
+            }">
+          <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
+            <template #body="{data, field}">
+              <span v-if="field==='project'">
+                {{ data[field].key }}
+              </span>
+              <span v-else-if="field==='issuetype'">
+                {{ data[field].id }}
+              </span>
+              <span v-else-if="field!=='issuetype' && field!=='project'">
+                {{ data[field] }}
+              </span>
+            </template>
+            <template #editor="{data, field, index}">
+              <InputText v-if="field==='project'" class="p-3"  v-model="data[field].key" autofocus/>
+              <InputText v-else-if="field==='issuetype'"class="p-3" v-model="data[field].id" autofocus />
+              <!-- <Textarea  v-else-if="field==='description'" class="p-3" rows="4" cols="50" v-model="data[field]" autofocus :autoResize="false" /> -->
+              <div v-else-if="field==='description'" @input="onTextAreaInput($event, index)" contenteditable="true" class="p-3 bg-gray-900 rounded-xl min-h-20 max-h-40 overflow-auto">{{ data[field] }}</div>
+              <InputText v-else class="p-3" v-model="data[field]" autofocus />
             </template>
           </Column>
-            <Column field="summary" header="Summary"/>
-            <Column field="description" header="Description"/>
-            <Column field="issuetype" header="Issue Type">
-                <template #body="slotProps">
-                  {{ slotProps.data.issuetype.id }}
-                </template>
-            </Column>
-            <Column field="" header="Actions">
-                <template #body>
-                  <div class="flex gap-1">
-                    <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"></Button>
-                    <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"></Button>
-                  </div>
-                </template>
-            </Column>
+          <Column header="Actions" :row-editor="true" bodyStyle="text-align:center">
+            <template #body="{index, editorInitCallback}">
+                <div class="grid md:grid-flow-col grid-flow-row gap-1">
+                    <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorInitCallback"></Button>
+                    <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
+                </div>
+              </template>
+              <template #editor="{editorCancelCallback, editorSaveCallback, index}">
+                <div class="grid gap-1">
+                  <Button icon="pi pi-check" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorSaveCallback"></Button>
+                  <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"@click="editorCancelCallback"></Button>
+                  <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
+                </div>
+              </template>
+          </Column>
         </DataTable>
         <template #footer>
-          <div class=" flex gap-3 py-1">
-            <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Close" @click="toggleModal()"></Button>
+          <div class="flex gap-3 py-1">
+            <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 hover:bg-green-400 hover:text-white" label="Close" @click="toggleModal()"></Button>
             <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA" @click="submitToJIRA"></Button>
           </div>
         </template>
@@ -53,14 +72,59 @@
 </template>
 
 <script setup lang="ts">
+import type { DataTableRowEditSaveEvent } from 'primevue/datatable';
 
-const { submitToAI, AIModel, generatedData, ProcessLogs, tableData } = useAI();
+
+interface IBodyCellData {
+  state: {
+    d_editing: boolean}
+}
+
+type TextAreaValue = {
+  data: string;
+  index: number;
+}
+
+const { submitToAI, AIModel, generatedData, ProcessLogs, tableData, columns } = useAI();
 
 const visible = ref(false);
+const isEditable = ref(false);
+
+const editingRows = ref([])
 
 const newMessage = ref("");
 const showInput = ref(true);
 
+// this is for contenteditable element cuz textarea looks ugly
+const textAreaValue = ref<TextAreaValue[]>([]);
+
+function toggleDebug() {
+  tableData.value = test.value
+  toggleModal()
+}
+
+function onTextAreaInput(e: Event, index:number) {
+  const value = (e.target as HTMLTextAreaElement).innerText;
+  console.log('target: ', value);
+  
+  const indexExists = textAreaValue.value.some(item => item.index === index);
+  if (!indexExists) {
+    textAreaValue.value.push({
+      data: value,
+      index,
+    });
+  } else {
+    textAreaValue.value = textAreaValue.value.map(item => {
+      if (item.index === index) {
+        return {
+          ...item,
+          data: value
+        }
+      }
+      return item;
+    })
+  }
+}
 function toggleInput() {
   showInput.value = !showInput.value;
 }
@@ -77,15 +141,38 @@ function submitGemini() {
 
 }
 
-function submitOpenAI() {
-  AIModel.value = 'OPENAI';
-  submitToAI(newMessage.value);
-  newMessage.value = "";
-  toggleInput();
+
+function onRowEditSave(e: DataTableRowEditSaveEvent) {
+  console.log('save: ', e);
+  const data = {
+    ...e.newData,
+    description: textAreaValue.value.find((item) => item.index === e.index)?.data,
+  }
+  tableData.value[e.index] = data;
+
+  textAreaValue.value = textAreaValue.value.filter((item) => item.index !== e.index);
+}
+// function submitOpenAI() {
+//   AIModel.value = 'OPENAI';
+//   submitToAI(newMessage.value);
+//   newMessage.value = "";
+//   toggleInput();
+// }
+
+function deleteIssue(index: number) {
+  console.log('delete: ', index);
+
+  // test.value.splice(index, 1);
+  tableData.value.splice(index, 1);
+}
+
+function editIssue(callback: Function) {
+  isEditable.value = true;
+  callback();
 }
 
 async function submitToJIRA() {
-  // toggleModal()
+  toggleModal()
   console.log("SENDING THIS OBJECT:", generatedData);
 
   const { data }  = await useFetch('/api/jira', {
@@ -97,7 +184,7 @@ async function submitToJIRA() {
   console.log('api: ', hello.data);
 }
 
-const test = [
+const test = ref([
     {
         "fields": {
             "project": {
@@ -218,9 +305,9 @@ const test = [
             }
         }
     }
-]
+].map((obj: { fields: any; }) => obj.fields));
 
-const mappedTest = test.map((obj: { fields: any; }) => obj.fields);
+
 </script>
 <style>
   ::-webkit-scrollbar {
