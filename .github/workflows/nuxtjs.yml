@@ -11,9 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: corepack enable
-      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2
         with:
-          node-version: "20"
+          version: 6.32.9
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 19.8.1
+          cache: 'pnpm'
       # Pick your own package manager and build script
       - run: pnpm install
       - run: pnpx nuxt build --preset github_pages
