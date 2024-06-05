@@ -17,50 +17,50 @@
     <div class="overflow-y-auto py-5 px-10 my-3 rounded-xl bg-opacity-55">
       <GenerateObjectProcess :processes="ProcessLogs" @toggleModal="toggleModal" />
     </div>
-    <Dialog class="bg-gray-800 dark" v-model:visible="visible" modal header="Generated Tasks/Issues" :style="{ width: '100rem'  }">
-        <DataTable v-model:editingRows="editingRows" :value="tableData" editMode="row" v-on:row-edit-save="onRowEditSave" :pt="{
-                column: {
-                    bodycell: ({ state }: IBodyCellData) => ({
-                        style:  state['d_editing']&&'padding-top: 0.6rem; padding-bottom: 0.6rem'
-                    })
-                }
-            }">
-          <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
-            <template #body="{data, field}">
-              <span v-if="field==='project'">
-                {{ data[field].key }}
-              </span>
-              <span v-else-if="field==='issuetype'">
-                {{ data[field].id }}
-              </span>
-              <span v-else-if="field!=='issuetype' && field!=='project'">
-                {{ data[field] }}
-              </span>
-            </template>
-            <template #editor="{data, field, index}">
-              <InputText v-if="field==='project'" class="p-3"  v-model="data[field].key" autofocus/>
-              <InputText v-else-if="field==='issuetype'"class="p-3" v-model="data[field].id" autofocus />
-              <!-- <Textarea  v-else-if="field==='description'" class="p-3" rows="4" cols="50" v-model="data[field]" autofocus :autoResize="false" /> -->
-              <div v-else-if="field==='description'" @input="onTextAreaInput($event, index)" contenteditable="true" class="p-3 bg-gray-900 rounded-xl min-h-20 max-h-40 overflow-auto">{{ data[field] }}</div>
-              <InputText v-else class="p-3" v-model="data[field]" autofocus />
-            </template>
-          </Column>
-          <Column header="Actions" :row-editor="true" bodyStyle="text-align:center">
-            <template #body="{index, editorInitCallback}">
-                <div class="grid md:grid-flow-col grid-flow-row gap-1">
-                    <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorInitCallback"></Button>
+    <Dialog class="bg-gray-800 dark mx-3 p-3" v-model:visible="visible" modal header="Generated Tasks/Issues">
+          <DataTable v-model:editingRows="editingRows" :value="tableData" editMode="row" class="overflow-auto sm:w-96 md:w-full" v-on:row-edit-save="onRowEditSave" :pt="{
+                  column: {
+                      bodycell: ({ state }: IBodyCellData) => ({
+                          style:  state['d_editing']&&'padding-top: 0.6rem; padding-bottom: 0.6rem'
+                      })
+                  }
+              }">
+            <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field" >
+              <template #body="{data, field}">
+                <span v-if="field==='project'">
+                  {{ data[field].key }}
+                </span>
+                <span v-else-if="field==='issuetype'">
+                  {{ data[field].id }}
+                </span>
+                <span v-else>
+                  {{ data[field] }}
+                </span>
+              </template>
+              <template #editor="{data, field, index}">
+                <InputText v-if="field==='project'" class="p-3 w-20"  v-model="data[field].key" autofocus/>
+                <InputText v-else-if="field==='issuetype'"class="p-3 w-20" v-model="data[field].id" autofocus />
+                <!-- <Textarea  v-else-if="field==='description'" class="p-3" rows="4" cols="50" v-model="data[field]" autofocus :autoResize="false" /> -->
+                <div v-else-if="field==='description'" @input="onTextAreaInput($event, index)" contenteditable="true" class="p-3 bg-gray-900 rounded-xl min-h-20 max-h-40 overflow-auto">{{ data[field] }}</div>
+                <InputText v-else class="p-3" v-model="data[field]" autofocus />
+              </template>
+            </Column>
+            <Column header="Actions" :row-editor="true" bodyStyle="text-align:center">
+              <template #body="{index, editorInitCallback}">
+                  <div class="grid md:grid-flow-col grid-flow-row gap-1">
+                      <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorInitCallback"></Button>
+                      <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
+                  </div>
+                </template>
+                <template #editor="{editorCancelCallback, editorSaveCallback, index}">
+                  <div class="grid md:grid-flow-col grid-flow-row gap-1">
+                    <Button icon="pi pi-check" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorSaveCallback"></Button>
+                    <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"@click="editorCancelCallback"></Button>
                     <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
-                </div>
-              </template>
-              <template #editor="{editorCancelCallback, editorSaveCallback, index}">
-                <div class="grid md:grid-flow-col grid-flow-row gap-1">
-                  <Button icon="pi pi-check" class="bg-green-500 text-h5 p-2 text-center text-white"@click="editorSaveCallback"></Button>
-                  <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"@click="editorCancelCallback"></Button>
-                  <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white" @click="deleteIssue(index)"></Button>
-                </div>
-              </template>
-          </Column>
-        </DataTable>
+                  </div>
+                </template>
+            </Column>
+          </DataTable>
         <template #footer>
           <div class="flex gap-3 py-1">
             <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 hover:bg-green-400 hover:text-white" label="Close" @click="toggleModal()"></Button>
