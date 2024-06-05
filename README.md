@@ -1,8 +1,7 @@
-# Gemini-GPT (TalkAI)
+# Jira-AI
 
-- Created this to try to simulate OpenAI and Google Gemini to talk to each other
-
-- Saves the conversation in localhost
+- AI attempts to generate requirements based from user Input
+- Generated requirements will be converted to JIRA tasks/issues using their API
 
 ## Setup
 
