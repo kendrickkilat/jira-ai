@@ -1,17 +1,25 @@
 <template>
-  <div class="flex bg-gray-700 flex-col h-screen w-full pt-3 px-3">
-    <Button class="py-3 text-white" icon="pi pi-wrench" @click="toggleDebug"></Button>
-    <div v-if="!showInput" class="flex gap-3 justify-center">
+  <div class="flex bg-gray-700 flex-col h-screen w-full ">
+    <div class="flex flex-row bg-gray-900">
+      <span class=" flex flex-row items-center">
+        <Button class="py-3 text-white active:border-0" icon="pi pi-bars" @click=""></Button>
+        <h3 class="text-h4">JIRA-AI</h3>
+      </span>
+      <span class="flex flex-1 justify-end">
+        <Button class="py-3 text-white" icon="pi pi-clone" @click="toggleDebug"></Button>
+        <Button class="py-3 text-white" icon="pi pi-check-circle" @click="showSuccessModal = true"></Button>
+      </span>
+    </div>
+    <div v-if="!showInput" class="flex gap-3 justify-center my-10">
       <Button icon="pi pi-eye" class=" text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
     </div>
-    <div v-else="showInput" class="flex flex-col ">
+    <div v-if="showInput" class="flex flex-col p-3">
       <span class="flex justify-between items-end">
-        <label class="text-white my-3 text-h4">INPUT INSTRUCTIONS:</label>
         <Button icon="pi pi-eye-slash" class="text-h5 p-3 text-white" @click="toggleInput"></Button>
       </span>
       <Textarea class="col-12 p-3" v-model="newMessage" rows="10" cols="10" placeholder="Enter your instructions"/>
       <div class="flex flex-row gap-1 justify-center">
-        <Button icon="pi pi-cog" class="bg-pink-600 my-2 p-2 w-40 text-h5 text-white" label="GENERATE" @click="submitGemini" />
+        <Button icon="pi pi-cog text-h3" class="hover:bg-pink-600 my-2 p-3 px-5 w-50 text-h3 rounded-full text-white" label="GENERATE" @click="submitGemini" />
       </div>
     </div>
     <div class="overflow-y-auto py-5 px-10 my-3 rounded-xl bg-opacity-55">
@@ -68,6 +76,7 @@
           </div>
         </template>
     </Dialog>
+    <SuccessModal v-model:visible="showSuccessModal" @toggle-modal="showSuccessModal=false"/>
   </div>
 </template>
 
@@ -89,6 +98,7 @@ const { submitToAI, AIModel, generatedData, ProcessLogs, tableData, columns } = 
 
 const visible = ref(false);
 const isEditable = ref(false);
+const showSuccessModal = ref(false);
 
 const editingRows = ref([])
 
@@ -173,15 +183,21 @@ function editIssue(callback: Function) {
 
 async function submitToJIRA() {
   toggleModal()
-  console.log("SENDING THIS OBJECT:", generatedData);
+  console.log("SENDING THIS OBJECT:", tableData);
+  try {
+    const { data }  = await useFetch('/api/jira', {
+      method: 'post',
+      body: generatedData
+    });
+    const hello = data.value as { data: string, status:string};
+    console.log('api: ', hello.data);
 
-  const { data }  = await useFetch('/api/jira', {
-    method: 'post',
-    body: generatedData
-  });
+    showSuccessModal.value = true;
 
-  const hello = data.value as { data: string, status:string};
-  console.log('api: ', hello.data);
+  } catch (e) {
+    console.error('error when submitting to JIRA: ', e);
+  }
+
 }
 
 const test = ref([
