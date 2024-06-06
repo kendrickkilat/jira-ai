@@ -184,10 +184,16 @@ function editIssue(callback: Function) {
 async function submitToJIRA() {
   toggleModal()
   console.log("SENDING THIS OBJECT:", tableData);
+
+  const convertedData = tableData.value.map(obj => {
+    return {
+      fields: obj
+    }
+  })
   try {
     const { data }  = await useFetch('/api/jira', {
       method: 'post',
-      body: generatedData
+      body: convertedData
     });
     const hello = data.value as { data: string, status:string};
     console.log('api: ', hello.data);
