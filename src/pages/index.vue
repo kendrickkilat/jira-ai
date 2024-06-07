@@ -71,7 +71,7 @@
           </DataTable>
         <template #footer>
           <div class="flex gap-3 py-1">
-            <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 hover:bg-green-400 hover:text-white" label="Close" @click="toggleModal()"></Button>
+            <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 " label="Close" @click="toggleModal()"></Button>
             <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA" @click="submitToJIRA"></Button>
           </div>
         </template>
@@ -156,7 +156,7 @@ function onRowEditSave(e: DataTableRowEditSaveEvent) {
   console.log('save: ', e);
   const data = {
     ...e.newData,
-    description: textAreaValue.value.find((item) => item.index === e.index)?.data,
+    description: textAreaValue.value.find((item) => item.index === e.index)?.data ?? e.newData.description,
   }
   tableData.value[e.index] = data;
 
