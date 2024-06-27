@@ -1,5 +1,5 @@
 <template>
-    <Dialog :dismissable-mask="props.dismissable ?? true" :class="'bg-gray-800 dark mx-3 p-3' + className" v-model:visible="props.visible" v-on:update:visible="emit('toggle-modal')" modal :header="header" :pt="pt ?? {}">
+    <Dialog :dismissable-mask="props.dismissable ?? true" :class="'bg-gray-800 dark mx-3 p-3' + className" :visible="props.visible" v-on:update:visible="emit('toggle-modal')" modal :header="header" :pt="pt ?? {}">
         <template #header>
             <slot name="header"></slot>
         </template>
