@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:visible="props.visible" :dismissable-mask="true" modal style="width:25rem;" :closable="false":pt="{
+    <base-dialog @toggle-modal="emit('toggleModal')" :visible="props.visible" modal style="width:25rem;" :closable="false":pt="{
         footer: {
             class:'justify-center'
         }
@@ -11,12 +11,13 @@
         <template #footer >
             <Button class=" border-green-500 border-solid border-2 text-h5 py-2 px-3 text-center text-green-500" label="Okay" @click="emit('toggleModal')"></Button>
         </template>
-    </Dialog>
+    </base-dialog>
 </template>
 
 <script setup lang="ts">
 const emit = defineEmits(["toggleModal"]);
 const props = defineProps(["visible"]);
+
 </script>
 
 <style scoped>

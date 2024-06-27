@@ -14,7 +14,7 @@ export default function useGeminiAI() {
 
 
   async function callGemini(message: string) {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const chat = model.startChat();
     const prompt = message;
     const result = await chat.sendMessage(prompt);
