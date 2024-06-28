@@ -35,8 +35,8 @@
                     <div class="grid md:grid-flow-col grid-flow-row gap-1">
                         <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"
                             @click="editorInitCallback"></Button>
-                        <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
-                            @click="deleteIssue(index)"></Button>
+                        <!-- <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
+                            @click="deleteIssue(index)"></Button> -->
                     </div>
                 </template>
                 <template #editor="{ editorCancelCallback, editorSaveCallback, index }">
@@ -45,16 +45,14 @@
                             @click="editorSaveCallback"></Button>
                         <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"
                             @click="editorCancelCallback"></Button>
-                        <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
-                            @click="deleteIssue(index)"></Button>
+                        <!-- <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
+                            @click="deleteIssue(index)"></Button> -->
                     </div>
                 </template>
             </Column>
         </DataTable>
 
-        <div class="flex gap-3 py-1">
-            <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 "
-                label="Close" @click="toggleModal()"></Button>
+        <div class="flex justify-end gap-3 pt-3 pb-1">
             <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA"
                 @click="submitToJIRA"></Button>
         </div>

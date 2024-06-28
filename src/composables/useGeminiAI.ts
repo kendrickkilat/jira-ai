@@ -47,25 +47,11 @@ export default function useGeminiAI() {
 
     return text;
   }
-  async function talkToGemini(message: string): Promise<string> {
-    const { $mdRenderer: mdRenderer } = useNuxtApp();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const chat = model.startChat();
-    const prompt = message;
-    const result = await chat.sendMessage(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    isTyping(false);
-    addConversationLog(USER.GEMINI, mdRenderer.render(text));
-    return text;
-  }
-
+  
   return {
     geminiAILogs,
     isGeminiAITyping,
-    talkToGemini,
     callGemini,
   };
 }

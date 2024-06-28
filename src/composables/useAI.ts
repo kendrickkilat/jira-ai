@@ -15,7 +15,7 @@ export default function useAI() {
     const { callGemini } = useGeminiAI();
     const { AILogs, isAITyping, ProcessLogs } = storeToRefs(useMessageStore());
 
-    const { $mdRenderer: mdRenderer } = useNuxtApp();
+    // const { $mdRenderer: mdRenderer } = useNuxtApp();
     const generatedData = ref([]);
     const tableData = ref<TableData[]>([]);
 
@@ -28,10 +28,8 @@ export default function useAI() {
 
     const {
         isTyping,
-        addConversationLog,
         updateProcess,
         addToProcessList,
-        updateTypingStatus,
         removeProcess,
     } = useMessageStore();
 
@@ -47,7 +45,7 @@ export default function useAI() {
     // validate the message if its valid instruction or not
     async function validateMessage(message: string) {
         console.log('validating: ', message)
-        const instruction = `Answer in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
+        const instruction = `Answer only in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
         const res = await callAI(instruction);
     
         if(!res) {
@@ -193,17 +191,17 @@ export default function useAI() {
    
             if(!elaboratedMessage){
                isTyping(false);
-               addToProcessList(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
+               updateProcess(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
                return
             }
    
    
             updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
-            addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
+            // addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
    
             const modifiedMessage = modifyMessage(elaboratedMessage);
    
-            addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
+             addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
              const generatedObjString = await callAI(modifiedMessage)
              const data = removeCodeBlock(generatedObjString ?? '');
              console.log('filteredData: ', data);
