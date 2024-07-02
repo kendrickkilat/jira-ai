@@ -10,7 +10,11 @@
             }">
             <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
                 <template #body="{ data, field }">
-                    <span v-if="field === 'project'">
+                    
+                    <span v-if="field === 'selected'" class="text-center">
+                        <Checkbox v-model="selected" :inputId="data.id.toString()" name="issue" :value="data.id" />
+                    </span>
+                    <span v-else-if="field === 'project'">
                         {{ data[field].key }}
                     </span>
                     <span v-else-if="field === 'issuetype'">
@@ -79,6 +83,10 @@ const textAreaValue = ref<TextAreaValue[]>([]);
 
 const { tableData, columns } = useAI();
 
+const selected = ref(props.data.map((item: any) => item.id));
+
+console.log(props.data)
+
 watchEffect(() => {
     tableData.value = props.data;
 })
@@ -105,12 +113,16 @@ function onTextAreaInput(value: string, index: number) {
     }
 }
 
-function deleteIssue(index: number) {
-    console.log('delete: ', index);
+// function onCheckboxChange(e: any, id:number) {
+//     console.log('onCheckboxChange: ', selected.value, id, e);
+// }
 
-    // test.value.splice(index, 1);
-    tableData.value.splice(index, 1);
-}
+// function deleteIssue(index: number) {
+//     console.log('delete: ', index);
+
+//     // test.value.splice(index, 1);
+//     tableData.value.splice(index, 1);
+// }
 function onRowEditSave(e: DataTableRowEditSaveEvent) {
     console.log('save: ', e);
     const data = {
@@ -123,21 +135,22 @@ function onRowEditSave(e: DataTableRowEditSaveEvent) {
 }
 
 async function submitToJIRA() {
-    emit('showSuccess', true)
     console.log("SENDING THIS OBJECT:", tableData);
 
-    const convertedData = tableData.value.map(obj => {
-        return {
+    const convertedData = tableData.value
+        .filter(obj => selected.value.includes(obj.id))
+        .map(obj => ({
             fields: obj
-        }
-    })
+        }));
+
+    console.log('convertedData', convertedData)
     try {
         const { data } = await useFetch('/api/jira', {
             method: 'post',
             body: convertedData
         });
-        const hello = data.value as { data: string, status: string };
-        console.log('api: ', hello.data);
+        const res = data.value as { data: string, status: string };
+        console.log('api: ', res.data);
 
        emit('showSuccess', true)
 

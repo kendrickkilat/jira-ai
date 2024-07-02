@@ -35,11 +35,6 @@
 
 <script setup lang="ts">
 
-type TextAreaValue = {
-  data: string;
-  index: number;
-}
-
 const { submitToAI, AIModel, generatedData, ProcessLogs, tableData, columns } = useAI();
 
 const visible = ref(false);
@@ -79,6 +74,8 @@ function submitGemini() {
 //   newMessage.value = "";
 //   toggleInput();
 // }
+
+let testIndex = 0;
 
 const test = ref([
   {
@@ -201,7 +198,15 @@ const test = ref([
       }
     }
   }
-].map((obj: { fields: any; }) => obj.fields));
+].map((obj: { fields: any; }) => {
+  const newObj = {
+    ...obj.fields,
+    id: testIndex
+  }
+
+  testIndex++;
+  return newObj
+}));
 
 
 </script>

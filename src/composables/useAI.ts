@@ -1,6 +1,7 @@
 import { PROCESS, PROCESS_STATUS, USER } from "~/enums/AI";
 
 export type TableData = {
+  id: number;
   description: string;
   issuetype: {id: number};
   project: {key: string};
@@ -20,6 +21,7 @@ export default function useAI() {
     const tableData = ref<TableData[]>([]);
 
     const columns = ref([
+      {field: 'selected', header: ''},
       {field: 'project', header: 'Project Key'},
       {field: 'summary', header: 'Summary'},
       {field: 'description', header: 'Description'},
@@ -215,7 +217,17 @@ export default function useAI() {
                 console.log('generatedObj: ', generatedObj);
 
                 generatedData.value = generatedObj;
-                tableData.value = generatedObj.map((obj: { fields: any; }) => obj.fields);
+                let index=0;
+                tableData.value = generatedObj.map((obj: { fields: any; }) =>{
+                  const data = {
+                    ...obj.fields,
+                    id: index,
+                  }
+                  index++;
+                  return data;
+                });
+
+                console.log('tableData: ', tableData.value);
                 
                 removeProcess(PROCESS.GENERATE_OBJECT)
                 addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);
