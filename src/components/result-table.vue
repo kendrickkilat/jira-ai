@@ -18,7 +18,7 @@
                         {{ data[field].key }}
                     </span>
                     <span v-else-if="field === 'issuetype'">
-                        {{ data[field].id }}
+                        {{ data[field].name }}
                     </span>
                     <span v-else>
                         {{ data[field] }}
@@ -26,11 +26,12 @@
                 </template>
                 <template #editor="{ data, field, index }">
                     <InputText v-if="field === 'project'" class="p-3 w-20" v-model="data[field].key" autofocus />
-                    <InputText v-else-if="field === 'issuetype'" class="p-3 w-20" v-model="data[field].id" autofocus />
+                    <InputText v-else-if="field === 'issuetype'" class="p-3 w-20" v-model="data[field].name" autofocus />
                     <base-textarea v-else-if="field === 'description'" @input="onTextAreaInput($event, index)"
                         className="min-h-20 max-h-40">
                         {{ data[field] }}
                     </base-textarea>
+                    <div v-else-if="field==='selected'"></div>
                     <InputText v-else class="p-3" v-model="data[field]" autofocus />
                 </template>
             </Column>
@@ -57,7 +58,7 @@
         </DataTable>
 
         <div class="flex justify-end gap-3 pt-3 pb-1">
-            <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA"
+            <Button class="bg-green-500 text-h5 p-2 text-center text-white w-full" label="Submit to JIRA"
                 @click="submitToJIRA"></Button>
         </div>
     </div>

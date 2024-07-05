@@ -3,7 +3,7 @@ import type { NuxtConfig } from "nuxt/config";
 
 const runtimeConfig: NuxtConfig["runtimeConfig"] = {
   public: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_API_KEY: process.env.NUXT_OPENAI_API_KEY,
     OPENAI_ORG_KEY: process.env.OPENAI_ORG_KEY,
     GEMINI_API_KEY: process.env.GOOGLE_GEMINI_KEY,
     JIRA_API_KEY: process.env.JIRA_API_KEY,

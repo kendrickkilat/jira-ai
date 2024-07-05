@@ -3,9 +3,22 @@ import { PROCESS, PROCESS_STATUS, USER } from "~/enums/AI";
 export type TableData = {
   id: number;
   description: string;
-  issuetype: {id: number};
+  issuetype: {name: string};
   project: {key: string};
   summary: string;
+}
+
+export type JiraIssue = {
+  fields: {
+    project: {
+      key: string;
+    };
+    summary: string;
+    description: string;
+    issuetype: {
+      name: string;
+    };
+  }
 }
 
 export default function useAI() {
@@ -14,10 +27,11 @@ export default function useAI() {
     const AIModel = ref('');
 
     const { callGemini } = useGeminiAI();
+    const { callOpenAI } = useOpenAI();
     const { AILogs, isAITyping, ProcessLogs } = storeToRefs(useMessageStore());
 
     // const { $mdRenderer: mdRenderer } = useNuxtApp();
-    const generatedData = ref([]);
+    const generatedData = ref<JiraIssue[]>([]);
     const tableData = ref<TableData[]>([]);
 
     const columns = ref([
@@ -35,10 +49,9 @@ export default function useAI() {
         removeProcess,
     } = useMessageStore();
 
-    // TODO: ADD AN ERROR IF THE API WONT RESPOND WITH ERROR CODE
-    async function callAI(message:string): Promise<string | undefined> {
+    async function callAI(message:string): Promise<string | undefined | null> {
         switch(AIModel.value) {
-            // case 'OPENAI': return await callOpenAI(message);
+            case 'OPENAI': return await callOpenAI(message);
             case 'GEMINI': return await callGemini(message);
             default: console.error('Invalid AI Model');
         }
@@ -167,8 +180,8 @@ export default function useAI() {
     // generate the elaborated code
 
     async function elaborateMessage(message: string) {
-        const instruction = `Can you elaborate this list of instructions even further: ${message}`;
-        const res = await callGemini(instruction);
+        const instruction = `Convert the following business requirements into JIRA backlog items:\n\n${message}`;
+        const res = await callAI(instruction);
         return res ?? 'Instructions cannot be elaborated.'
     }
     // generate the generated json object
@@ -190,35 +203,51 @@ export default function useAI() {
             }
    
             const elaboratedMessage = await elaborateMessage(message);
-   
+
+            
             if(!elaboratedMessage){
-               isTyping(false);
-               updateProcess(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
-               return
+              isTyping(false);
+              updateProcess(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
+              return
             }
-   
+            
+            const jiraIssues: JiraIssue[] = elaboratedMessage
+              .trim()
+              .split(/(?:1\. |2\. |3\. |4\. |5\. |6\. |7\. |8\. |9\. |10\. )/)
+              .map((line: string) => ({
+                fields: {
+                  project: {
+                    key: 'AIA',
+                  },
+                  summary: line.substring(0, line.indexOf('- ')), 
+                  description: line,
+                  issuetype: {
+                    name: 'Task',
+                  },
+                },
+              }));
    
             updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
             // addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
    
-            const modifiedMessage = modifyMessage(elaboratedMessage);
+            // const modifiedMessage = modifyMessage(elaboratedMessage); // no longer neeeded as this was done programttically
    
              addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
-             const generatedObjString = await callAI(modifiedMessage)
-             const data = removeCodeBlock(generatedObjString ?? '');
-             console.log('filteredData: ', data);
+            //  const generatedObjString = await callAI(modifiedMessage)
+            //  const data = removeCodeBlock(generatedObjString ?? '');
+            //  console.log('filteredData: ', data);
 
-             const validatedJSON = await validateJSON(elaboratedMessage, data);
+            //  const validatedJSON = await validateJSON(elaboratedMessage, data);
 
-             if(validatedJSON) {
+            //  if(validatedJSON) {
                 
-                const generatedObj = JSON.parse(validatedJSON);
+                // const generatedObj = JSON.parse(validatedJSON);
 
-                console.log('generatedObj: ', generatedObj);
+                console.log('jiraIssues: ', jiraIssues);
 
-                generatedData.value = generatedObj;
+                generatedData.value = jiraIssues;
                 let index=0;
-                tableData.value = generatedObj.map((obj: { fields: any; }) =>{
+                tableData.value = jiraIssues.map((obj: { fields: any; }) =>{
                   const data = {
                     ...obj.fields,
                     id: index,
@@ -231,7 +260,7 @@ export default function useAI() {
                 
                 removeProcess(PROCESS.GENERATE_OBJECT)
                 addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);
-             }
+            //  }
 
          } catch (err) {
             addToProcessList(PROCESS.ERROR, `Cant Generate the Message: ${err}`, PROCESS_STATUS.FAILED);
