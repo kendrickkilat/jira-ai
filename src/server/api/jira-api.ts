@@ -1,7 +1,5 @@
 import JiraApi from 'jira-client';
 
-
-
 const jira = new JiraApi({
     protocol: "https",
     host: "millercodefactory.atlassian.net",

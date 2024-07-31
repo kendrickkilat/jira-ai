@@ -179,8 +179,8 @@ export default function useAI() {
 
     // generate the elaborated code
 
-    async function elaborateMessage(message: string) {
-        const instruction = `Convert the following business requirements into JIRA backlog items:\n\n${message}`;
+    async function elaborateMessage(requirements: string) {
+        const instruction = `I want you to act as a product owner in this chat and help me write user stories. A proper user story should contain the WHO, the WHAT and the WHY. I will send a business requirement or problem and I want you to break that into user stories. As I will take the stories and put them into our Application Lifecycle tool, each story should come with a headline that is NOT formatted as a user story, rather the shortest possible sentence to describe it. Each story should then contain a story and additional information describing it. \n\n Business Requirements: \n\n${requirements}. Start the result of each backlog with this sign "###"`;
         const res = await callAI(instruction);
         return res ?? 'Instructions cannot be elaborated.'
     }
@@ -210,29 +210,36 @@ export default function useAI() {
               updateProcess(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
               return
             }
+
+            console.log('elaboratedMessage: ', elaboratedMessage);
             
-            const jiraIssues: JiraIssue[] = elaboratedMessage
+            const generatedIssues: JiraIssue[] = elaboratedMessage
               .trim()
-              .split(/(?:1\. |2\. |3\. |4\. |5\. |6\. |7\. |8\. |9\. |10\. )/)
+              // .split(/(?:1\. |2\. |3\. |4\. |5\. |6\. |7\. |8\. |9\. |10\. )/)
+              .split('###')
               .map((line: string) => ({
                 fields: {
                   project: {
-                    key: 'AIA',
+                    key: 'AIW',
                   },
-                  summary: line.substring(0, line.indexOf('- ')), 
+                  summary: line.substring(0, line.indexOf('\n')), 
                   description: line,
                   issuetype: {
                     name: 'Task',
                   },
                 },
               }));
+
+            console.log('generatedIssues: ', generatedIssues);
+
+            const jiraIssues = generatedIssues.filter(item => item.fields.summary !== '' || item.fields.description !== '');
    
             updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
             // addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
    
             // const modifiedMessage = modifyMessage(elaboratedMessage); // no longer neeeded as this was done programttically
    
-             addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
+            addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
             //  const generatedObjString = await callAI(modifiedMessage)
             //  const data = removeCodeBlock(generatedObjString ?? '');
             //  console.log('filteredData: ', data);

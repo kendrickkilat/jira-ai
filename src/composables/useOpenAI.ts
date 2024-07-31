@@ -16,6 +16,8 @@ export default function useOpenAI() {
       const completion = await openai.chat.completions.create({
         messages: [{ role: "assistant", content: message }],
         model: "gpt-4",
+        temperature: 0.5,
+        max_tokens: 1000,
       });
   
       return completion.choices[0].message.content;
