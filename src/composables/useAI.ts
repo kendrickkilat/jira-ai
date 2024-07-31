@@ -59,7 +59,6 @@ export default function useAI() {
 
     // validate the message if its valid instruction or not
     async function validateMessage(message: string) {
-        console.log('validating: ', message)
         const instruction = `Answer only in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
         const res = await callAI(instruction);
     
@@ -81,7 +80,6 @@ export default function useAI() {
     function nonAIValidator(json:string) {
       try {
         const data = JSON.parse(json);
-        console.log('data: ', data);
 
         data.forEach((e:any) => {
           if(e.fields.project.key != "AI" || e.fields.issuetype != 10001) { // for issue type might add a switch case where the default returns false maybe?
@@ -91,7 +89,6 @@ export default function useAI() {
 
         return true;
       } catch(err) {
-        console.log('nonAIValidation Error: ', err);
         return false;
       }
     }
@@ -107,7 +104,6 @@ export default function useAI() {
     }
 
     async function validateJSON(instructions: string, json: string) {
-      console.log('validating json');
       
       // first check if json is valid
       const nonAIValidated = nonAIValidator(json);
@@ -211,7 +207,6 @@ export default function useAI() {
               return
             }
 
-            console.log('elaboratedMessage: ', elaboratedMessage);
             
             const generatedIssues: JiraIssue[] = elaboratedMessage
               .trim()
@@ -230,7 +225,6 @@ export default function useAI() {
                 },
               }));
 
-            console.log('generatedIssues: ', generatedIssues);
 
             const jiraIssues = generatedIssues.filter(item => item.fields.summary !== '' || item.fields.description !== '');
    
@@ -242,15 +236,11 @@ export default function useAI() {
             addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
             //  const generatedObjString = await callAI(modifiedMessage)
             //  const data = removeCodeBlock(generatedObjString ?? '');
-            //  console.log('filteredData: ', data);
-
             //  const validatedJSON = await validateJSON(elaboratedMessage, data);
 
             //  if(validatedJSON) {
                 
                 // const generatedObj = JSON.parse(validatedJSON);
-
-                console.log('jiraIssues: ', jiraIssues);
 
                 generatedData.value = jiraIssues;
                 let index=0;
@@ -262,8 +252,6 @@ export default function useAI() {
                   index++;
                   return data;
                 });
-
-                console.log('tableData: ', tableData.value);
                 
                 removeProcess(PROCESS.GENERATE_OBJECT)
                 addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);

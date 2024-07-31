@@ -86,15 +86,11 @@ const { tableData, columns } = useAI();
 
 const selected = ref(props.data.map((item: any) => item.id));
 
-console.log(props.data)
-
 watchEffect(() => {
     tableData.value = props.data;
 })
 
 function onTextAreaInput(value: string, index: number) {
-    console.log('onTextAreaInput: ', value);
-
     const indexExists = textAreaValue.value.some(item => item.index === index);
     if (!indexExists) {
         textAreaValue.value.push({

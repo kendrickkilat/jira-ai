@@ -51,7 +51,6 @@ function toggleDebug() {
 }
 
 function toggleSuccessModal() {
-  console.log('showSuccessModal: ', showSuccessModal.value);
   showSuccessModal.value = !showSuccessModal.value;
 }
 function toggleInput() {
