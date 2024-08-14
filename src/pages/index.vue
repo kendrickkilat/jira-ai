@@ -7,9 +7,10 @@
       </span>
     </div>
     
-    <div class="overflow-y-auto py-5 px-10 mb-3 rounded-xl bg-opacity-55 my-3 text-center">
-      <span class=" text-center">API Initiialized...</span>
-    </div>
+      <div id="content" class="text-center py-10 bg-gray-800 m-3 rounded-xl">
+            <i class="pi pi-check-circle pb-5 text-green-500" style="font-size:50px"></i>
+            <h1 class="text-h3">API Initialized :)</h1>
+      </div>
     <ResultModal :visible="visible" @toggle-modal="toggleModal" :data="tableData" />
     <SuccessModal :visible="showSuccessModal" @toggle-modal="toggleSuccessModal" />
   </div>
@@ -24,8 +25,6 @@ const showSuccessModal = ref(false);
 
 const newMessage = ref("");
 const showInput = ref(true);
-
-toggleSuccessModal();
 
 function toggleDebug() {
   tableData.value = test.value
