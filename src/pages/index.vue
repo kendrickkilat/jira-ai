@@ -5,30 +5,10 @@
         <!-- <Button class=" text-white active:border-0" icon="pi pi-bars" @click=""></Button> -->
         <h3 class="text-h4">JIRA-AI</h3>
       </span>
-      <span class="flex flex-1 justify-end">
-        <Button v-if="!showInput" icon="pi pi-eye" class=" text-h5 p-3 text-white" @click="toggleInput"></Button>
-        <Button v-else icon="pi pi-eye-slash" class="text-h5 p-3 text-white" @click="toggleInput"></Button>
-        <!-- <Button class="py-3 text-white" icon="pi pi-clone" @click="toggleDebug"></Button>
-        <Button class="py-3 text-white" icon="pi pi-check-circle" @click="toggleSuccessModal"></Button> -->
-      </span>
     </div>
-    <!-- <div v-if="!showInput" class="flex gap-3 justify-center mt-5 mb-3">
-      <Button icon="pi pi-eye" class=" text-h5 p-3 text-white" label="SHOW INPUT" @click="toggleInput"></Button>
-    </div> -->
-    <div v-if="showInput" class="flex flex-col pt-3 px-3 bg-slate-800 m-2 rounded-xl">
-      <!-- <span class="flex justify-between items-end">
-        <Button icon="pi pi-eye-slash" class="text-h5 p-3 text-white" @click="toggleInput"></Button>
-      </span> -->
-      <base-textarea className=" min-h-72 max-h-96" @input="(value: string) => newMessage = value"
-        placeholder="Enter Instructions Here..."></base-textarea>
-      <!-- <Textarea class="col-12 p-3" v-model="newMessage" rows="10" cols="10" placeholder="Enter your instructions"/> -->
-      <div class="flex flex-row gap-1 justify-center">
-        <Button icon="pi pi-cog text-h3" class="hover:bg-pink-600 my-2 p-3 px-5 w-50 text-h3 rounded-full text-white"
-          label="GENERATE" @click="submit" />
-      </div>
-    </div>
-    <div class="overflow-y-auto py-5 px-10 mb-3 rounded-xl bg-opacity-55 my-3">
-      <GenerateObjectProcess :tableData="tableData" :processes="ProcessLogs" @toggleModal="toggleModal" />
+    
+    <div class="overflow-y-auto py-5 px-10 mb-3 rounded-xl bg-opacity-55 my-3 text-center">
+      <span class=" text-center">API Initiialized...</span>
     </div>
     <ResultModal :visible="visible" @toggle-modal="toggleModal" :data="tableData" />
     <SuccessModal :visible="showSuccessModal" @toggle-modal="toggleSuccessModal" />
@@ -44,6 +24,8 @@ const showSuccessModal = ref(false);
 
 const newMessage = ref("");
 const showInput = ref(true);
+
+toggleSuccessModal();
 
 function toggleDebug() {
   tableData.value = test.value
