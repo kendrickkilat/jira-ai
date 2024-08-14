@@ -10,11 +10,15 @@
             }">
             <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
                 <template #body="{ data, field }">
-                    <span v-if="field === 'project'">
+                    
+                    <span v-if="field === 'selected'" class="text-center">
+                        <Checkbox v-model="selected" :inputId="data.id.toString()" name="issue" :value="data.id" />
+                    </span>
+                    <span v-else-if="field === 'project'">
                         {{ data[field].key }}
                     </span>
                     <span v-else-if="field === 'issuetype'">
-                        {{ data[field].id }}
+                        {{ data[field].name }}
                     </span>
                     <span v-else>
                         {{ data[field] }}
@@ -22,11 +26,12 @@
                 </template>
                 <template #editor="{ data, field, index }">
                     <InputText v-if="field === 'project'" class="p-3 w-20" v-model="data[field].key" autofocus />
-                    <InputText v-else-if="field === 'issuetype'" class="p-3 w-20" v-model="data[field].id" autofocus />
+                    <InputText v-else-if="field === 'issuetype'" class="p-3 w-20" v-model="data[field].name" autofocus />
                     <base-textarea v-else-if="field === 'description'" @input="onTextAreaInput($event, index)"
                         className="min-h-20 max-h-40">
                         {{ data[field] }}
                     </base-textarea>
+                    <div v-else-if="field==='selected'"></div>
                     <InputText v-else class="p-3" v-model="data[field]" autofocus />
                 </template>
             </Column>
@@ -35,8 +40,8 @@
                     <div class="grid md:grid-flow-col grid-flow-row gap-1">
                         <Button icon="pi pi-pencil" class="bg-green-500 text-h5 p-2 text-center text-white"
                             @click="editorInitCallback"></Button>
-                        <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
-                            @click="deleteIssue(index)"></Button>
+                        <!-- <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
+                            @click="deleteIssue(index)"></Button> -->
                     </div>
                 </template>
                 <template #editor="{ editorCancelCallback, editorSaveCallback, index }">
@@ -45,17 +50,15 @@
                             @click="editorSaveCallback"></Button>
                         <Button icon="pi pi-times" class="bg-yellow-500 text-h5 p-2 text-center text-white"
                             @click="editorCancelCallback"></Button>
-                        <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
-                            @click="deleteIssue(index)"></Button>
+                        <!-- <Button icon="pi pi-trash" class="bg-red-500 text-h5 p-2 text-center text-white"
+                            @click="deleteIssue(index)"></Button> -->
                     </div>
                 </template>
             </Column>
         </DataTable>
 
-        <div class="flex gap-3 py-1">
-            <Button class=" border-green-500 border-solid border-2 text-h5 p-2 text-center text-green-500 "
-                label="Close" @click="toggleModal()"></Button>
-            <Button class="bg-green-500 text-h5 p-2 text-center text-white" label="Submit to JIRA"
+        <div class="flex justify-end gap-3 pt-3 pb-1">
+            <Button class="bg-green-500 text-h5 p-2 text-center text-white w-full" label="Submit to JIRA"
                 @click="submitToJIRA"></Button>
         </div>
     </div>
@@ -81,13 +84,13 @@ const textAreaValue = ref<TextAreaValue[]>([]);
 
 const { tableData, columns } = useAI();
 
+const selected = ref(props.data.map((item: any) => item.id));
+
 watchEffect(() => {
     tableData.value = props.data;
 })
 
 function onTextAreaInput(value: string, index: number) {
-    console.log('onTextAreaInput: ', value);
-
     const indexExists = textAreaValue.value.some(item => item.index === index);
     if (!indexExists) {
         textAreaValue.value.push({
@@ -107,12 +110,16 @@ function onTextAreaInput(value: string, index: number) {
     }
 }
 
-function deleteIssue(index: number) {
-    console.log('delete: ', index);
+// function onCheckboxChange(e: any, id:number) {
+//     console.log('onCheckboxChange: ', selected.value, id, e);
+// }
 
-    // test.value.splice(index, 1);
-    tableData.value.splice(index, 1);
-}
+// function deleteIssue(index: number) {
+//     console.log('delete: ', index);
+
+//     // test.value.splice(index, 1);
+//     tableData.value.splice(index, 1);
+// }
 function onRowEditSave(e: DataTableRowEditSaveEvent) {
     console.log('save: ', e);
     const data = {
@@ -125,21 +132,22 @@ function onRowEditSave(e: DataTableRowEditSaveEvent) {
 }
 
 async function submitToJIRA() {
-    emit('showSuccess', true)
     console.log("SENDING THIS OBJECT:", tableData);
 
-    const convertedData = tableData.value.map(obj => {
-        return {
+    const convertedData = tableData.value
+        .filter(obj => selected.value.includes(obj.id))
+        .map(obj => ({
             fields: obj
-        }
-    })
+        }));
+
+    console.log('convertedData', convertedData)
     try {
         const { data } = await useFetch('/api/jira', {
             method: 'post',
             body: convertedData
         });
-        const hello = data.value as { data: string, status: string };
-        console.log('api: ', hello.data);
+        const res = data.value as { data: string, status: string };
+        console.log('api: ', res.data);
 
        emit('showSuccess', true)
 

@@ -11,7 +11,6 @@
 </template>
 <script setup lang="ts">
 const props = defineProps(['visible', 'header', 'className', 'pt', 'dismissable']);
-const showModal = ref(props.visible);
 const emit = defineEmits(['toggle-modal']);
 
 </script>

@@ -1,10 +1,24 @@
 import { PROCESS, PROCESS_STATUS, USER } from "~/enums/AI";
 
 export type TableData = {
+  id: number;
   description: string;
-  issuetype: {id: number};
+  issuetype: {name: string};
   project: {key: string};
   summary: string;
+}
+
+export type JiraIssue = {
+  fields: {
+    project: {
+      key: string;
+    };
+    summary: string;
+    description: string;
+    issuetype: {
+      name: string;
+    };
+  }
 }
 
 export default function useAI() {
@@ -13,13 +27,15 @@ export default function useAI() {
     const AIModel = ref('');
 
     const { callGemini } = useGeminiAI();
+    const { callOpenAI } = useOpenAI();
     const { AILogs, isAITyping, ProcessLogs } = storeToRefs(useMessageStore());
 
-    const { $mdRenderer: mdRenderer } = useNuxtApp();
-    const generatedData = ref([]);
+    // const { $mdRenderer: mdRenderer } = useNuxtApp();
+    const generatedData = ref<JiraIssue[]>([]);
     const tableData = ref<TableData[]>([]);
 
     const columns = ref([
+      {field: 'selected', header: ''},
       {field: 'project', header: 'Project Key'},
       {field: 'summary', header: 'Summary'},
       {field: 'description', header: 'Description'},
@@ -28,17 +44,14 @@ export default function useAI() {
 
     const {
         isTyping,
-        addConversationLog,
         updateProcess,
         addToProcessList,
-        updateTypingStatus,
         removeProcess,
     } = useMessageStore();
 
-    // TODO: ADD AN ERROR IF THE API WONT RESPOND WITH ERROR CODE
-    async function callAI(message:string): Promise<string | undefined> {
+    async function callAI(message:string): Promise<string | undefined | null> {
         switch(AIModel.value) {
-            // case 'OPENAI': return await callOpenAI(message);
+            case 'OPENAI': return await callOpenAI(message);
             case 'GEMINI': return await callGemini(message);
             default: console.error('Invalid AI Model');
         }
@@ -46,8 +59,7 @@ export default function useAI() {
 
     // validate the message if its valid instruction or not
     async function validateMessage(message: string) {
-        console.log('validating: ', message)
-        const instruction = `Answer in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
+        const instruction = `Answer only in yes or no, Is this a valid list of issues/task that can be added in JIRA?: ${message}`;
         const res = await callAI(instruction);
     
         if(!res) {
@@ -68,7 +80,6 @@ export default function useAI() {
     function nonAIValidator(json:string) {
       try {
         const data = JSON.parse(json);
-        console.log('data: ', data);
 
         data.forEach((e:any) => {
           if(e.fields.project.key != "AI" || e.fields.issuetype != 10001) { // for issue type might add a switch case where the default returns false maybe?
@@ -78,7 +89,6 @@ export default function useAI() {
 
         return true;
       } catch(err) {
-        console.log('nonAIValidation Error: ', err);
         return false;
       }
     }
@@ -94,7 +104,6 @@ export default function useAI() {
     }
 
     async function validateJSON(instructions: string, json: string) {
-      console.log('validating json');
       
       // first check if json is valid
       const nonAIValidated = nonAIValidator(json);
@@ -166,9 +175,9 @@ export default function useAI() {
 
     // generate the elaborated code
 
-    async function elaborateMessage(message: string) {
-        const instruction = `Can you elaborate this list of instructions even further: ${message}`;
-        const res = await callGemini(instruction);
+    async function elaborateMessage(requirements: string) {
+        const instruction = `I want you to act as a product owner in this chat and help me write user stories. A proper user story should contain the WHO, the WHAT and the WHY. I will send a business requirement or problem and I want you to break that into user stories. As I will take the stories and put them into our Application Lifecycle tool, each story should come with a headline that is NOT formatted as a user story, rather the shortest possible sentence to describe it. Each story should then contain a story and additional information describing it. \n\n Business Requirements: \n\n${requirements}. Start the result of each backlog with this sign "###"`;
+        const res = await callAI(instruction);
         return res ?? 'Instructions cannot be elaborated.'
     }
     // generate the generated json object
@@ -190,38 +199,63 @@ export default function useAI() {
             }
    
             const elaboratedMessage = await elaborateMessage(message);
-   
+
+            
             if(!elaboratedMessage){
-               isTyping(false);
-               addToProcessList(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
-               return
+              isTyping(false);
+              updateProcess(PROCESS.ELABORATING, 'Cant Elaborate the Message', PROCESS_STATUS.FAILED);
+              return
             }
-   
+
+            
+            const generatedIssues: JiraIssue[] = elaboratedMessage
+              .trim()
+              // .split(/(?:1\. |2\. |3\. |4\. |5\. |6\. |7\. |8\. |9\. |10\. )/)
+              .split('###')
+              .map((line: string) => ({
+                fields: {
+                  project: {
+                    key: 'AIW',
+                  },
+                  summary: line.substring(0, line.indexOf('\n')), 
+                  description: line,
+                  issuetype: {
+                    name: 'Task',
+                  },
+                },
+              }));
+
+
+            const jiraIssues = generatedIssues.filter(item => item.fields.summary !== '' || item.fields.description !== '');
    
             updateProcess(PROCESS.ELABORATING, message, PROCESS_STATUS.SUCCESS);
-            addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
+            // addToProcessList(PROCESS.ELABORATED, mdRenderer.render(elaboratedMessage), PROCESS_STATUS.SUCCESS);
    
-            const modifiedMessage = modifyMessage(elaboratedMessage);
+            // const modifiedMessage = modifyMessage(elaboratedMessage); // no longer neeeded as this was done programttically
    
             addToProcessList(PROCESS.GENERATE_OBJECT, '', PROCESS_STATUS.IN_PROGRESS);
-             const generatedObjString = await callAI(modifiedMessage)
-             const data = removeCodeBlock(generatedObjString ?? '');
-             console.log('filteredData: ', data);
+            //  const generatedObjString = await callAI(modifiedMessage)
+            //  const data = removeCodeBlock(generatedObjString ?? '');
+            //  const validatedJSON = await validateJSON(elaboratedMessage, data);
 
-             const validatedJSON = await validateJSON(elaboratedMessage, data);
-
-             if(validatedJSON) {
+            //  if(validatedJSON) {
                 
-                const generatedObj = JSON.parse(validatedJSON);
+                // const generatedObj = JSON.parse(validatedJSON);
 
-                console.log('generatedObj: ', generatedObj);
-
-                generatedData.value = generatedObj;
-                tableData.value = generatedObj.map((obj: { fields: any; }) => obj.fields);
+                generatedData.value = jiraIssues;
+                let index=0;
+                tableData.value = jiraIssues.map((obj: { fields: any; }) =>{
+                  const data = {
+                    ...obj.fields,
+                    id: index,
+                  }
+                  index++;
+                  return data;
+                });
                 
                 removeProcess(PROCESS.GENERATE_OBJECT)
                 addToProcessList(PROCESS.GENERATE_OBJECT_DONE, `Object Generated!`, PROCESS_STATUS.SUCCESS);
-             }
+            //  }
 
          } catch (err) {
             addToProcessList(PROCESS.ERROR, `Cant Generate the Message: ${err}`, PROCESS_STATUS.FAILED);

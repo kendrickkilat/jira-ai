@@ -8,7 +8,8 @@
             <div v-if="data.content != ''" id="instructions" class="bg-gray-900 p-3 mt-2 rounded-xl">
                 <p v-if="data.type !== PROCESS.ELABORATED && data.type !== PROCESS.GENERATE_OBJECT_DONE"  style="white-space: pre-wrap">{{ data.content }}</p>
                 <div v-else-if="data.type === PROCESS.GENERATE_OBJECT_DONE" class="flex justify-center">
-                    <Button class="bg-green-600 text-h5 p-4 text-center text-white" label="Show List of Generated Tasks/Issues" @click="emit('toggleModal')"></Button>
+                    <!-- <Button class="bg-green-600 text-h5 p-4 text-center text-white" label="Show List of Generated Tasks/Issues" @click="emit('toggleModal')"></Button> -->
+                    <ResultTable :data="tableData"/>
                 </div>
                 <p v-else v-html="data.content"></p>
             </div>
@@ -19,8 +20,9 @@
 <script setup lang="ts">
 import { PROCESS, PROCESS_STATUS } from '~/enums/AI';
 
-defineProps(["processes"])
+defineProps(["processes", "tableData"])
 const emit = defineEmits(["toggleModal"]);
+
 
 function renderLabel(label:string) {
     switch(label) {

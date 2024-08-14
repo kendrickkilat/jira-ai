@@ -6,7 +6,7 @@
     }">
         <div id="content" class="text-center">
             <i class="pi pi-check-circle pb-5 text-green-500" style="font-size:50px"></i>
-            <h1 class="text-h1">Operation Success</h1>
+            <h1 class="text-h3">API Initialized :)</h1>
         </div>
         <template #footer >
             <Button class=" border-green-500 border-solid border-2 text-h5 py-2 px-3 text-center text-green-500" label="Okay" @click="emit('toggleModal')"></Button>
