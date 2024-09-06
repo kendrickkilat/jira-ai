@@ -10,15 +10,16 @@
       <div id="content" class="text-center py-10 bg-gray-800 m-3 rounded-xl">
             <i class="pi pi-check-circle pb-5 text-green-500" style="font-size:50px"></i>
             <h1 class="text-h3">API Initialized :)</h1>
+            <!-- <button @click="toggleDebug">Click me :)</button> -->
       </div>
-    <ResultModal :visible="visible" @toggle-modal="toggleModal" :data="tableData" />
-    <SuccessModal :visible="showSuccessModal" @toggle-modal="toggleSuccessModal" />
+    <!-- <ResultModal :visible="visible" @toggle-modal="toggleModal" :data="tableData" />
+    <SuccessModal :visible="showSuccessModal" @toggle-modal="toggleSuccessModal" /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 
-const { submitToAI, AIModel, generatedData, ProcessLogs, tableData, columns } = useAI();
+const { submitToAI, AIModel, tableData } = useAI();
 
 const visible = ref(false);
 const showSuccessModal = ref(false);
@@ -26,10 +27,26 @@ const showSuccessModal = ref(false);
 const newMessage = ref("");
 const showInput = ref(true);
 
-function toggleDebug() {
-  tableData.value = test.value
-  toggleModal()
+async function toggleDebug() {
+  // tableData.value = test.value
+  // toggleModal()
+  console.log('toggleDebug');
+  const test = {
+    message: "Hello World"
+  }
+
+  const data =  await fetch('/api/openai', {
+    method: 'post',
+    body: JSON.stringify(test),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const res = await data.json();
+  console.log(res.data);
 }
+
 
 function toggleSuccessModal() {
   showSuccessModal.value = !showSuccessModal.value;

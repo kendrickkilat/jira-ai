@@ -6,6 +6,8 @@ const runtimeConfig: NuxtConfig["runtimeConfig"] = {
     OPENAI_API_KEY: process.env.NUXT_OPENAI_API_KEY,
     GEMINI_API_KEY: process.env.NUXT_GOOGLE_GEMINI_KEY,
     JIRA_API_KEY: process.env.NUXT_JIRA_API_KEY,
+    JIRA_HOST: process.env.NUXT_JIRA_HOST!,
+    JIRA_USERNAME: process.env.NUXT_JIRA_USERNAME!,
   },
 };
 
