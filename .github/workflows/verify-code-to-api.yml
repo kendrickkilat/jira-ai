@@ -2,7 +2,7 @@ name: Send PR Commit Details
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, edited]
 
 jobs:
   send_commit_details:
@@ -37,8 +37,9 @@ jobs:
 
     - name: Send commit details to API
       env:
-        API_ENDPOINT: https://api.specopsecure.cloud/openai/upload
+        API_ENDPOINT: https://jira-ai-gamma.vercel.app/api/github
       run: |
          response=$(curl -s -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json)
-         echo "::set-output name=response::$response"
+         # echo "::set-output name=response::$response"
+         echo "response=$response >> $GITHUB_OUTPUT"
          echo "Response from API: $response"
