@@ -1,0 +1,42 @@
+name: Send PR Commit Details
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  send_commit_details:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Get commit details
+      id: get_commits
+      env:
+        GH_TOKEN: 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
+      run: |
+        # Get the Pull Request number
+        pr_number=${{ github.event.pull_request.number }}
+        
+        # Get commit details including file paths
+        commits=$(gh pr view $pr_number --json commits --jq '.commits')
+
+        # Check if commits is not null
+        if [ -z "$commits" ] || [ "$commits" = "null" ]; then
+          echo "No commits found"
+          exit 1
+        fi
+
+        # Extract file paths, ensuring commits contain files
+        file_paths=$(echo $commits | jq -r 'map(select(.files != null) | .files[].path) | unique | join(", ")')
+
+        # Create a JSON object with commit details, file paths, and PR number
+        echo "{\"pr_number\": \"$pr_number\", \"commits\": $commits, \"file_paths\": \"$file_paths\"}" > commit_details.json
+
+    - name: Send commit details to API
+      env:
+        API_ENDPOINT: https://api.specopsecure.cloud/openai/upload
+      run: |
+        curl -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json
