@@ -15,7 +15,7 @@ jobs:
     - name: Get commit details
       id: get_commits
       env:
-        GH_TOKEN: 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
+        GH_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}
       run: |
         # Get the Pull Request number
         pr_number=${{ github.event.pull_request.number }}
