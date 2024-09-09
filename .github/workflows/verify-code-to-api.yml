@@ -2,7 +2,7 @@ name: Send PR Commit Details
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, edited]
 
 jobs:
   send_commit_details:
