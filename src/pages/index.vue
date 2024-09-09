@@ -46,7 +46,7 @@ async function toggleDebug() {
   const res = await data.json();
   console.log(res.data);
 
-  console.log('HEllo World 4');
+  console.log('Hello World 5');
 }
 
 
