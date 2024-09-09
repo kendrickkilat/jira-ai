@@ -39,4 +39,6 @@ jobs:
       env:
         API_ENDPOINT: https://api.specopsecure.cloud/openai/upload
       run: |
-        curl -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json
+         response=$(curl -s -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json)
+         echo "::set-output name=response::$response"
+         echo "Response from API: $response"
