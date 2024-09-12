@@ -21,6 +21,7 @@ jobs:
       - name: Extract Code change and convert to JSON
         run: |
           diff_json=$(git diff --unified=0 ${first_commit} HEAD | diff2json)
+          echo "${diff_json}"
           echo "::set-output name=diff_json::${diff_json}"
       - name: Send commit details to API
         env:
