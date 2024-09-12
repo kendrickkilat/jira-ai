@@ -13,10 +13,15 @@ jobs:
         id: get_first_commit
         run: |
           first_commit=$(git rev-list --max-parents=0 HEAD)
-          echo "::set-output name=first_commit::$first_commit"
+          echo "${first_commit}"
+          echo "::set-output name=first_commit::${first_commit}"
       - name: Extract code change
         run: |
           git diff --unified=0 ${first_commit} HEAD > code_change.diff
+      - name: Extract Code change and convert to JSON
+        run: |
+          diff_json=$(git diff --unified=0 ${first_commit} HEAD | diff2json)
+          echo "::set-output name=diff_json::${diff_json}"
       - name: Send commit details to API
         env:
             API_ENDPOINT: https://jira-ai-gamma.vercel.app/api/github
