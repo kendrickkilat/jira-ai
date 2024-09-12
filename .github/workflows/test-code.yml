@@ -1,0 +1,27 @@
+name: Extract Code Change
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  extract_code_change:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get first commit SHA
+        id: get_first_commit
+        run: |
+          first_commit=$(git rev-list --max-parents=0 HEAD)
+          echo "::set-output name=first_commit::${first_commit}"
+      - name: Extract code change
+        run: |
+          git diff --unified=0 ${first_commit} HEAD > code_change.diff
+      - name: Send commit details to API
+        env:
+            API_ENDPOINT: https://jira-ai-gamma.vercel.app/api/github
+        run: |
+            response=$(curl -s -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json)
+            # echo "::set-output name=response::$response"
+            echo "response=$response >> $GITHUB_OUTPUT"
+            echo "Response from API: $response"
