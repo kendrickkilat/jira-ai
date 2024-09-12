@@ -13,7 +13,7 @@ jobs:
         id: get_first_commit
         run: |
           first_commit=$(git rev-list --max-parents=0 HEAD)
-          echo "::set-output name=first_commit::${first_commit}"
+          echo "::set-output name=first_commit::$first_commit"
       - name: Extract code change
         run: |
           git diff --unified=0 ${first_commit} HEAD > code_change.diff
