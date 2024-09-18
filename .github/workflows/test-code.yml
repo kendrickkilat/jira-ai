@@ -35,7 +35,7 @@ jobs:
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.changes != ''
         run: |
-          CODE_CHANGES="${{ steps.get_code_changes.outputs.changes }}"
+          CODE_CHANGES="${{ steps.get_code_changes_v2.outputs.response }}"
           curl -X POST https://jira-ai-gamma.vercel.app/api/github \
             -H "Content-Type: application/json" \
             -d "{\"code_changes\": \"${CODE_CHANGES}\"}"
