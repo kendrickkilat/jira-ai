@@ -1,33 +1,29 @@
-name: Extract Code Change
+name: Send PR Code Changes
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  extract_code_change:
+  send-code-changes:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Get first commit SHA
-        id: get_first_commit
+      - name: Checkout code
+        uses: actions/checkout@v3  # Updated to v3
+
+      - name: Get code changes
+        id: get_code_changes
         run: |
-          first_commit=$(git rev-list --max-parents=0 HEAD)
-          echo "${first_commit}"
-          echo "::set-output name=first_commit::${first_commit}"
-      - name: Extract code change
+          # Get the code changes between the last commit on the base branch and the current commit
+          CODE_CHANGES=$(git diff ${{ github.event.before }} ${{ github.sha }})
+          # Output the changes
+          echo "::set-output name=changes::${CODE_CHANGES}"
+
+      - name: Send code changes to API
+        if: steps.get_code_changes.outputs.changes != ''
         run: |
-          git diff --unified=0 ${first_commit} HEAD > code_change.diff
-      - name: Extract Code change and convert to JSON
-        run: |
-          diff_json=$(git diff --unified=0 ${first_commit} HEAD | diff2json)
-          echo "${diff_json}"
-          echo "::set-output name=diff_json::${diff_json}"
-      - name: Send commit details to API
-        env:
-            API_ENDPOINT: https://jira-ai-gamma.vercel.app/api/github
-        run: |
-            response=$(curl -s -X POST $API_ENDPOINT -H "Content-Type: application/json" -d @commit_details.json)
-            # echo "::set-output name=response::$response"
-            echo "response=$response >> $GITHUB_OUTPUT"
-            echo "Response from API: $response"
+          CODE_CHANGES="${{ steps.get_code_changes.outputs.changes }}"
+          curl -X POST https://jira-ai-gamma.vercel.app/api/github \
+            -H "Content-Type: application/json" \
+            -d "{\"code_changes\": \"${CODE_CHANGES}\"}"
