@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3  # Updated to v3
 
       - name: Get Code Changes v2
-        id: get_code_changes_v2
+        id: get_code_changes
         env:
           GH_TOKEN: ${{ secrets.MY_ACCESS_TOKEN}}
         run: |
@@ -24,18 +24,10 @@ jobs:
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/kendrickkilat/jira-ai/pulls/3/files)
           echo "response=$response >> $GITHUB_OUTPUT"
-      - name: Get code changes
-        id: get_code_changes
-        run: |
-          # Get the code changes between the last commit on the base branch and the current commit
-          CODE_CHANGES=$(git diff ${{ github.event.before }} ${{github.sha}})
-          # Output the changes
-          echo "::set-output name=changes::${CODE_CHANGES}"
-
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.changes != ''
         run: |
-          CODE_CHANGES="${{ steps.get_code_changes_v2.outputs.response }}"
+          CODE_CHANGES="${{ steps.get_code_changes.outputs.response }}"
           curl -X POST https://jira-ai-gamma.vercel.app/api/github \
             -H "Content-Type: application/json" \
             -d "{\"code_changes\": \"${CODE_CHANGES}\"}"
