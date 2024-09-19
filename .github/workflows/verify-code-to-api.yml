@@ -33,6 +33,7 @@ jobs:
         if: steps.get_code_changes.outputs.changes != ''
         run: |
           CODE_CHANGES="${{ steps.get_code_changes.outputs.changes }}"
+          echo "code-changes: ${CODE_CHANGES}"
           curl -X POST https://jira-ai-gamma.vercel.app/api/github \
             -H "Content-Type: application/json" \
             -d "{\"code_changes\": \"${CODE_CHANGES}\"}"
