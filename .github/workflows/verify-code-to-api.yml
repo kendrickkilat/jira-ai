@@ -34,6 +34,7 @@ jobs:
         if: steps.get_code_changes.outputs.changes != ''
         run: |
           decoded_changes=$(echo "${{ steps.get_code_changes.outputs.changes }}" | base64 --decode)
+          echo "$decoded_changes | jq '.'"
           CODE_CHANGES="$decoded_changes | jq '.'"
           echo "code-changes: ${CODE_CHANGES}"
           curl -X POST https://jira-ai-gamma.vercel.app/api/github \
