@@ -28,6 +28,8 @@ jobs:
         run: |
          commits=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits')
          echo "${commits}"
+         diff = $(gh pr diff ${{ github.event.pull_request.number }} --patch)
+         echo "${diff}"
          echo "combined=$combined" >> $GITHUB_OUTPUT
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.combined != ''
