@@ -27,7 +27,7 @@ jobs:
         #   echo "::set-output name=changes::${changes}"  # Set the output variable 
         run: |
           # Get the code changes between the last commit on the base branch and the current commit
-          CODE_CHANGES=$(gh pr diff)
+          CODE_CHANGES=$(gh pr diff ${{github.event.pull_request.number}})
           echo ${CODE_CHANGES}
           # Set the output
           echo "::set-output name=changes::${CODE_CHANGES}"
