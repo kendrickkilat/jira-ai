@@ -26,8 +26,8 @@ jobs:
         #   changes=$(echo "${response}" | jq -c '.' | base64)  # Extract the array of objects
         #   echo "::set-output name=changes::${changes}"  # Set the output variable 
         run: |
-         diff = $(gh pr diff ${{ github.event.pull_request.number }} --patch)
-         echo "${diff}"
+         diff=$(gh pr diff --patch)
+         echo "$diff"
          echo "combined=$combined" >> $GITHUB_OUTPUT
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.combined != ''
