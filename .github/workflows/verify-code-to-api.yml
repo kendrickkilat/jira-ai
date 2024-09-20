@@ -31,9 +31,9 @@ jobs:
          combined=$(echo "$file_info" | jq -s 'map({(. + {diff: null})})' | jq ".[0].diff = \"$diff\"")
          echo "combined=$combined" >> $GITHUB_OUTPUT
       - name: Send code changes to API
-        if: steps.get_code_changes.outputs.changes != ''
+        if: steps.get_code_changes.outputs.combined != ''
         run: |
-          CODE_CHANGES="${{ steps.get_code_changes.outputs.changes }}"
+          CODE_CHANGES="${{ steps.get_code_changes.outputs.combined }}"
           echo "code-changes: ${CODE_CHANGES}"
           curl -X POST https://jira-ai-gamma.vercel.app/api/github \
             -H "Content-Type: application/json" \
