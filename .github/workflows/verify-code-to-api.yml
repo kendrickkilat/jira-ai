@@ -26,8 +26,6 @@ jobs:
         #   changes=$(echo "${response}" | jq -c '.' | base64)  # Extract the array of objects
         #   echo "::set-output name=changes::${changes}"  # Set the output variable 
         run: |
-         commits=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits')
-         echo "${commits}"
          diff = $(gh pr diff ${{ github.event.pull_request.number }} --patch)
          echo "${diff}"
          echo "combined=$combined" >> $GITHUB_OUTPUT
