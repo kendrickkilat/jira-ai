@@ -28,7 +28,7 @@ jobs:
         run: |
          file_info=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[] | {filename: .filename, status: .status}')
          diff=$(gh pr diff ${{ github.event.pull_request.number }} --patch)
-         combined=$(echo "$file_info" | jq -s 'map({(. + {diff: null})})' | jq ".[0].diff = \"$diff\"")
+         combined=$(echo "$file_info" | jq -s 'map({(. + {diff: null})})' | jq '.[0].diff = $diff')
          echo "combined=$combined" >> $GITHUB_OUTPUT
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.combined != ''
