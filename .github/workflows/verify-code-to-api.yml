@@ -26,11 +26,10 @@ jobs:
         #   changes=$(echo "${response}" | jq -c '.' | base64)  # Extract the array of objects
         #   echo "::set-output name=changes::${changes}"  # Set the output variable 
         run: |
-          # Get the code changes between the last commit on the base branch and the current commit
-          CODE_CHANGES=$(gh pr diff ${{github.event.pull_request.number}})
-          echo ${CODE_CHANGES}
-          # Set the output
-          echo "::set-output name=changes::${CODE_CHANGES}"
+         file_info=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[] | {filename: .filename, status: .status}')
+         diff=$(gh pr diff ${{ github.event.pull_request.number }} --patch)
+         combined=$(echo "$file_info" | jq -s 'map({(. + {diff: null})})' | jq ".[0].diff = \"$diff\"")
+         echo "combined=$combined" >> $GITHUB_OUTPUT
       - name: Send code changes to API
         if: steps.get_code_changes.outputs.changes != ''
         run: |
