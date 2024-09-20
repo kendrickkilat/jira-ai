@@ -27,7 +27,7 @@ jobs:
         #   echo "::set-output name=changes::${changes}"  # Set the output variable 
         run: |
          echo "Running gh pr diff"
-         diff=$(gh pr diff ${{github.event.pull_request.number}})
+         diff=$(gh pr diff ${{github.event.pull_request.number}} --patch)
          echo "Diff command executed"
          echo "$diff"
          echo "Setting output variable"
