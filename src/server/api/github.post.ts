@@ -2,7 +2,7 @@
 
 export default eventHandler(async (event) => {
     try {
-        // console.log('debug: ', event);
+        console.log('debug: ', event);
         const body = await readBody(event);
         console.log('body: ', body);
     
