@@ -8,7 +8,7 @@ export default eventHandler(async (event) => {
     
         const { callOpenAI } = useOpenAI();
         
-        const data = await callOpenAI(body.message); //todo figure out what the the insides of body look like, and make sure the open ai key matches the one in the forge app
+        const data = await callOpenAI(body.message); 
         console.log('openai api called', data);
     
         
